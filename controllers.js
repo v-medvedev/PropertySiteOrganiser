@@ -801,7 +801,7 @@ angular.module('app.controllers', [])
 			titleNumber: event.titleNumber,
 			propertyType: event.propertyType,
 			owners: [{
-				owner_type: event.owner_type,
+				type: event.owner_type,
 				companyName: event.companyName,
 				individualsNames: event.individualsNames,
 				address: event.owner_address,
@@ -2140,11 +2140,21 @@ angular.module('app.controllers', [])
   		});
     };
     $scope.removeOwners = function() {
-    	$scope.data.owners = [];
+    	$scope.data.owners = [{
+    		type: '',
+    		companyName: '',
+    		individualsNames: '',
+    		address: ''
+    	}];
     	$scope.activeOwner = -1;
     };
     $scope.removeOwner = function() {
-    	$scope.data.owners.splice($scope.activeOwner, 1);
+    	$scope.data.owners = [{
+    		type: '',
+    		companyName: '',
+    		individualsNames: '',
+    		address: ''
+    	}];
     	$scope.activeOwner = -1;
     };
     $scope.editOwner = function() {

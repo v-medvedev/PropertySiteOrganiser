@@ -807,8 +807,8 @@ angular.module('app.controllers', [])
 				address: event.owner_address,
 			}],			
 			titleArea: event.titleArea,
-			landInsightSite: event.landinsightSite,
-			landInsightTitle: event.landinsightTitle,
+			landinsightSite: event.landinsightSite,
+			landinsightTitle: event.landinsightTitle,
 			qualify: event.qualify,
 			fileStage1: event.fileStage1,
 			fileStage2: event.fileStage2,
@@ -866,7 +866,7 @@ angular.module('app.controllers', [])
 	  				$scope.displayedCollection[i] = data;
 	  				break;
 	  			}
-	  		}	  		
+	  		}
   		}, function () {
       		$log.info('Modal dismissed at: ' + new Date());
   		});
@@ -1107,7 +1107,7 @@ angular.module('app.controllers', [])
 		}
 		$scope.displayedCollection[idx].selected = 'selected';
 		$scope.activeRowId = 'db-' + idx;
-		console.log($scope.displayedCollection[idx]);
+		// console.log($scope.displayedCollection[idx]);
 	};
 
 	$scope.exportSingleLetter = function(property, fileType) {
@@ -1215,6 +1215,7 @@ angular.module('app.controllers', [])
 		var letterDate = undefined;
 		var letter1Date = '';
 		var letterIndex = '';
+		var letter1_date = undefined;
 		console.log(record);
 		switch (fileType) {
     		case 'Letter1':
@@ -1281,7 +1282,7 @@ angular.module('app.controllers', [])
 	            owner_address: address,
 	            site_address: record.siteAddress,
 	            letter_date: $scope.formatDate(letter_date),
-	            letter1_date: letter1_date ? $scope.formatDate(letter1_date) : '',
+	            letter1_date: letter1_date != undefined ? $scope.formatDate(letter1_date) : '',
 	            title: $scope.toProperCase(title)
 	        };
 	        if (record.companyName == undefined) {

@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myCalendarApp">
+	<head>
+		<meta charset="utf-8">
+		<title>Property Site Organiser</title>
+		<!-- css output -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+		<link rel="stylesheet" href="bower_components/fullcalendar/dist/fullcalendar.css"/>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="css/style.css">
+		<link rel="stylesheet" href="css/nav.css">
+		<!-- jquery/angularjs/bootstrap js -->
+		<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+		<script type="text/javascript" src="bower_components/moment/min/moment.min.js"></script>
+		<script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
+		<script type="text/javascript" src="bower_components/angular-ui-calendar/src/calendar.js"></script>
+		<script type="text/javascript" src="bower_components/angular-smart-table/dist/smart-table.js"></script>
+		<script type="text/javascript" src="bower_components/chart.js/dist/Chart.js"></script>
+		<script type="text/javascript" src="bower_components/angular-chart.js/dist/angular-chart.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.14.3/ui-bootstrap-tpls.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"></script>
+		<script src="https://code.angularjs.org/1.6.0/angular-route.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+  		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+  		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+  		<script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+		<!-- 3rd party js -->
+		<script type="text/javascript" src="bower_components/fullcalendar/dist/fullcalendar.min.js"></script>
+		<script type="text/javascript" src="bower_components/fullcalendar/dist/gcal.js"></script>		
+		<script type="text/javascript" src="js/docxtemplater-latest.js"></script>
+		<script type="text/javascript" src="js/jszip.js"></script>
+		<script type="text/javascript" src="js/jszip-utils.js"></script>
+		<script type="text/javascript" src="js/file-saver.min.js"></script>		
+		<script type="text/javascript" src="bower_components/ng-file-upload/ng-file-upload.min.js"></script>
+		<!-- app js -->
+		<script type="text/javascript" src="app.js"></script>
+		<script type="text/javascript" src="controllers.js"></script>
+		<script type="text/javascript">
+			function loadFile(url,callback) {
+        		JSZipUtils.getBinaryContent(url,callback);
+    		}
+		</script>
+	</head>
+	<body ng-view>		
+	</body>
+
+	<!-- Main View -->
+	<script type="text/ng-template" id="Calendar.html">
+		<div class="container-fluid">
+			<div class="navbar navbar-inverse navbar-twitch" role="navigation">
+				<div class="container">
+					<div>
+						<ul class="nav navbar-nav">
+							<li class="active">
+								<a href="#">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Calendar"> 
+										<i class="fa fa-calendar" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Calendar</span>
+								</a>
+							</li>
+							<li>
+								<a href="#database">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database"> 
+										<i class="fa fa-database" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Database Stage 1</span>
+								</a>
+							</li>
+							<li>
+								<a href="#database2">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database"> 
+										<i class="fa fa-table" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Database Stage 2</span>
+								</a>
+							</li>
+							<li>
+								<a href="#charts">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Charts"> 
+										<i class="fa fa-line-chart" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Charts</span>
+								</a>
+							</li>							
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-left: -30px;"></div>
+			<div class="col-md-4" style="padding-right: 0px !important;">
+      			<div class="btn-group btn-group-justified" role="group" aria-label="...">
+				  		<div class="btn-group" role="group">
+				    		<button type="button" class="btn btn-primary" ng-click="addProperty()">
+				    			<i class="fa fa-street-view pull-left" aria-hidden="true"></i>
+				    			Add Property
+				    		</button>
+				  		</div>
+				  		<div class="btn-group" role="group">
+				    		<button type="button" class="btn btn-primary" ng-click="importTemplates()">
+				    			<i class="fa fa-upload pull-left" aria-hidden="true"></i>
+				    			Import Templates
+				    		</button>
+				  		</div>				  
+					</div>      			
+					<div class="panel panel-primary" style="margin-top: 10px;">
+				  		<div class="panel-heading">
+				  			Scheduled Events - {{ currentDate | date : 'dd MMM yyyy' }}				  			
+				  		</div>
+				  		<div class="panel-body">
+				  			<div ng-show="dayEvents_Stage1.length > 0" class="panel panel-default" style="margin-top: 10px;">
+						  		<div class="panel-heading" style="background: #e76208 !important; color: #fff;">
+						  			Stage 1
+						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true"></i>
+						  		</div>
+						  		<div class="panel-body">
+						  			<ul class="list-group">
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Stage1">{{ dayEvent.siteName | limitTo : 55 }}
+		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
+		  									<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
+		  								</li>
+									</ul>
+						  		</div>
+							</div>
+				  			<div ng-show="dayEvents_Letter1.length > 0" class="panel panel-primary" style="margin-top: 10px;">
+						  		<div class="panel-heading">
+						  			Letter 1
+						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter1')"></i>
+						  		</div>
+						  		<div class="panel-body">
+						  			<ul class="list-group">
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter1">{{ dayEvent.siteName | limitTo : 55 }}
+		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
+		  									<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
+		  									<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter1')"></i>
+		  								</li>
+									</ul>
+						  		</div>
+							</div>
+							<div ng-show="dayEvents_Letter2.length > 0" class="panel panel-success" style="margin-top: 10px;">
+						  		<div class="panel-heading">
+						  			Letter 2
+						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter2')"></i>
+						  		</div>
+						  		<div class="panel-body">
+						  			<ul class="list-group">
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter2">{{ dayEvent.siteName | limitTo : 55 }}
+		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
+			  								<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
+			  								<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter2')"></i>
+		  								</li>
+									</ul>
+						  		</div>
+							</div>
+							<div ng-show="dayEvents_Letter3.length > 0" class="panel panel-info" style="margin-top: 10px;">
+						  		<div class="panel-heading">
+						  			Letter 3
+						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter3')"></i>
+						  		</div>
+						  		<div class="panel-body">
+						  			<ul class="list-group">
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter3">{{ dayEvent.siteName | limitTo : 55 }}
+		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
+			  								<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
+			  								<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter3')"></i>
+		  								</li>
+									</ul>
+						  		</div>
+							</div>
+							<div ng-show="dayEvents_Letter4.length > 0" class="panel panel-warning" style="margin-top: 10px;">
+						  		<div class="panel-heading">
+						  			Letter 4
+						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true"></i>
+						  		</div>
+						  		<div class="panel-body">
+						  			<ul class="list-group">
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter4">{{ dayEvent.siteName | limitTo : 55 }}
+		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
+			  								<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
+			  								<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter4')"></i>
+		  								</li>
+									</ul>
+						  		</div>
+							</div>
+							<div ng-show="dayEvents_Letter5.length > 0" class="panel panel-danger" style="margin-top: 10px;">
+						  		<div class="panel-heading">
+						  			Letter 5
+						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true"></i>
+						  		</div>
+						  		<div class="panel-body">
+						  			<ul class="list-group">
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter5">{{ dayEvent.siteName | limitTo : 55 }}
+		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
+			  								<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
+			  								<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter5')"></i>
+		  								</li>
+									</ul>
+						  		</div>
+							</div>
+							<div ng-show="dayEvents_Stage2.length > 0" class="panel panel-default" style="margin-top: 10px;">
+						  		<div class="panel-heading" style="background: #dc08e7 !important; color: #fff;">
+						  			Stage 2
+						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true"></i>
+						  		</div>
+						  		<div class="panel-body">
+						  			<ul class="list-group">
+						  				<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Stage2">{{ dayEvent.siteName | limitTo : 45 }}
+						  					<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
+		  									<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
+		  								</li>
+									</ul>
+						  		</div>
+							</div>
+				  		</div>
+					</div>
+					<div class="panel panel-primary" style="margin-top: 10px;">
+						<div class="panel-heading">
+							To Do List
+							<i class="fa fa-plus pull-right" aria-hidden="true" style="margin-top: 3px;" ng-click="addNewToDo()"></i>
+						</div>
+						<div class="panel-body">
+							<md-content>
+					    		<md-tabs md-border-bottom>
+					      			<md-tab label="all">
+					        			<md-content class="md-padding">
+					          				<ul class="list-group">
+				  								<li class="list-group-item" ng-repeat="todo in todos">
+				  									<div class="checkbox" style="display: inline-block !important; width: 95%;">
+    													<label style="width: 100%;" ng-class="todo.label_style">
+      														<input type="checkbox" ng-checked="todo.completed == 1" ng-click="updateToDo(todo)">{{ todo.title }}: {{ todo.description }}
+      														<span class="pull-right">{{ todo.actual_date | date : 'dd MMM yyyy' }}</span>
+    													</label>
+  													</div>
+  													<i class="fa fa-trash-o fa-lg pull-right" aria-hidden="true" style="margin-top: 14px; color: red;" ng-click="deleteToDo(todo)"></i>
+				  								</li>
+											</ul>
+					        			</md-content>
+					      			</md-tab>
+					      			<md-tab label="active">
+					        			<md-content class="md-padding">
+					          				<ul class="list-group">
+				  								<li class="list-group-item" ng-repeat="todo in todos | filter: {completed: '0'} | filter: filterItemsByDate">
+				  									<div class="checkbox" style="display: inline-block !important; width: 95%;">
+    													<label style="width: 100%;">
+      														<input type="checkbox" ng-click="updateToDo(todo)">{{ todo.title }}: {{ todo.description }}
+      														<span class="pull-right">{{ todo.actual_date | date : 'dd MMM yyyy' }}</span>
+    													</label>
+  													</div>
+  													<i class="fa fa-trash-o fa-lg pull-right" aria-hidden="true" style="margin-top: 14px; color: red;" ng-click="deleteToDo(todo)"></i>
+				  								</li>
+											</ul>
+					        			</md-content>
+					      			</md-tab>
+					      			<md-tab label="completed">
+					        			<md-content class="md-padding">
+					          				<ul class="list-group">
+				  								<li class="list-group-item" ng-repeat="todo in todos | filter: {completed: '1'}">
+				  									<div class="checkbox" style="display: inline-block !important; width: 95%;">
+    													<label style="width: 100%;" ng-class="todo.label_style">
+      														<input type="checkbox" ng-checked="todo.completed == 1" ng-click="updateToDo(todo)">{{ todo.title }}: {{ todo.description }}
+      														<span class="pull-right">{{ todo.actual_date | date : 'dd MMM yyyy' }}</span>
+    													</label>
+  													</div>
+  													<i class="fa fa-trash-o fa-lg pull-right" aria-hidden="true" style="margin-top: 14px; color: red;" ng-click="deleteToDo(todo)"></i>
+				  								</li>
+											</ul>
+					        			</md-content>
+					      			</md-tab>
+					    		</md-tabs>
+					  		</md-content>
+						</div>					  
+					</div>
+      			</div>
+      			<div class="col-md-8">
+      				<div class="calendar" ng-model="eventSources" calendar="myCalendar" ui-calendar="uiConfig.calendar" data-tap-disabled="true">
+      			</div>
+      		</div>
+      	</div>
+   </script>
+
+	<!-- Add Property -->   
+	<script type="text/ng-template" id="AddProperty_Modal.html">
+		<div class="modal-header" style="background: #eee;">
+     		<h1>Add New Property</h1>
+ 		</div>
+ 		<div class="modal-body">
+ 			<form class="form-horizontal" name="userForm" style="padding-left: 10px; padding-right: 10px;" novalidate>
+		  		<div class="form-group" style="margin-bottom: 5px !important;" ng-class="{'has-error': userForm.siteLogNo.$invalid || userForm.dateFound.$invalid}">
+		  			<label class="col-sm-2 control-label">Site Log Number</label>
+		  			<div class="col-sm-2">
+      				<input type="number" min="1" class="form-control" ng-model="siteLogNo" name="siteLogNo" placeholder="Site No" required>
+    				</div> 				
+    				<label class="col-sm-4 control-label">Date Found</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="dateFound" name="dateFound" is-open="openedDateFound" ng-required="true" close-text="Close" />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default" ng-click="openDateFoundDatePicker()">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;" ng-class="{'has-error': userForm.siteName.$invalid}">
+		  			<label class="col-sm-2 control-label">Site Name</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="siteName" name="siteName" placeholder="Site Name" ng-change="siteNameChanged()" required>
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Notes</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="siteNotes" placeholder="Site Notes">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Address</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="siteAddress" placeholder="Site Address">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Postcode</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="sitePostcode" placeholder="Site Postcode">
+    				</div>
+    				<label class="col-sm-2 control-label">Title Number</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="titleNumber" placeholder="Title Number">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Type</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="propertyType" name="propertyType" ng-init="propertyType" ng-options="propertyType for propertyType in propertyTypes" required></select>      				
+    				</div>
+    				<label class="col-sm-2 control-label">Street Name (Word Doc)</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="streetName" placeholder="Street Name">
+    				</div>
+		  		</div>
+		  		<br/>
+		  		<div class="form-group" style="margin-bottom: 10px !important;">
+		  			<table class="table table-striped table-bordered table-hover table-condensed" style="width: 100%; margin-bottom: 5px !important;">
+		  				<thead style='background: #337ab7; color: #ffffff;'>
+		               		<tr>
+		                  		<th style="width: 10%;">Owner Type</th>
+	                  			<th style="width: 25%;">Company Name</th>
+		                  		<th style="width: 25%;">Individuals Names</th>
+		                  		<th style="width: 40%;">Address</th>
+		               		</tr>
+		            	</thead>
+		            	<tbody ng-show="owners.length > 0">
+		            		<tr ng-repeat="owner in owners" ng-click="setActiveOwner($index)" data-ng-class="{ success: owner.selected == 'selected' }" style="height: 27px;">
+			            		<td>{{ owner.type }}</td>
+			            		<td>{{ owner.companyName }}</td>
+			            		<td>{{ owner.individualsNames }}</td>
+			            		<td>{{ owner.address }}</td>
+			            	</tr>
+		            	</tbody>
+		            	<tbody ng-show="owners.length == 0">
+		            		<tr style="height: 27px;">
+			            		<td></td>
+			            		<td></td>
+			            		<td></td>
+			            		<td></td>
+			            	</tr>
+			            </tbody>
+		  			</table>
+		  			<a class="btn btn-primary active" role="button" ng-click="addOwner()">Add</a>
+	               	<a class="btn btn-warning active" role="button" ng-click="editOwner()" ng-disabled="activeOwner == -1">Edit</a>
+	               	<a class="btn btn-danger active" role="button" ng-click="removeOwner()" ng-disabled="activeOwner == -1">Remove</a>
+	               	<a class="btn btn-danger active" role="button" ng-click="removeOwners()" ng-disabled="owners.length == 0">Remove All</a>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Title Area (acres)</label>
+		  			<div class="col-sm-4">
+      					<input type="text" class="form-control" ng-model="titleArea" placeholder="Title Area">
+    				</div>
+    				<label class="col-sm-2 control-label">Template Letter 1</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="templateLetter1" name="templateLetter1" ng-init="templateLetter1" ng-options="templateLetter1 for templateLetter1 in templatesLetter1" required></select>      				
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">View Site</label>
+		  			<div class="col-sm-4">
+      					<input type="text" class="form-control" ng-model="landInsightSite" placeholder="View Site on Land Insight">
+    				</div>
+    				<label class="col-sm-2 control-label">Letter 1</label>
+		  			<div class="col-sm-4">
+		  				<div class="input-group">
+		            	<input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="dateLetter1" name="dateLetter1" is-open="openedDateLetter1" close-text="Close" ng-change="updateLetterDates()" />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter1DatePicker()">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>    				
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">View Title</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="landInsightTitle" placeholder="View Title on Land Insight">
+    				</div>
+    				<label class="col-sm-2 control-label">Letter 2 (8W)</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		            	<input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="dateLetter2" name="dateLetter2" is-open="openedDateLetter2" close-text="Close" />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter2DatePicker()">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>	            
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Qualify?</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="qualify" name="qualify" ng-init="qualify" ng-options="qualify for qualify in qualifyOptions" required></select>      				
+    				</div>
+	            	<label class="col-sm-2 control-label">Letter 3 (16W)</label>
+		  			<div class="col-sm-4">
+			            <div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="dateLetter3" name="dateLetter3" is-open="openedDateLetter3" close-text="Close" />
+			                <span class="input-group-btn">
+			                    <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter3DatePicker()">
+			                        <i class="glyphicon glyphicon-calendar"></i>
+			                    </button>
+			                </span>
+			            </div>
+		            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Stage 1</label>
+		  			<div class="col-sm-4">
+			            <div class="input-group">
+			               <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="dateStage1" name="dateStage1" is-open="openedDateStage1" close-text="Close" />
+			               <span class="input-group-btn">
+			                  <button style="height:34px;" class="btn btn-default" ng-click="openDateStage1DatePicker()">
+			                     <i class="glyphicon glyphicon-calendar"></i>
+			                  </button>
+			               </span>
+			            </div>
+		            </div>
+		            <label class="col-sm-2 control-label">Letter 4</label>
+			  			<div class="col-sm-4">
+			            <div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="dateLetter4" name="dateLetter4" is-open="openedDateLetter4" close-text="Close" />
+			                <span class="input-group-btn">
+			                    <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter4DatePicker()">
+			                        <i class="glyphicon glyphicon-calendar"></i>
+			                    </button>
+			                </span>
+			            </div>
+		            </div>
+		  		</div>		  		
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Stage 2</label>
+		  			<div class="col-sm-4">
+			            <div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="dateStage2" name="dateStage2" is-open="openedDateStage2" close-text="Close" />
+			                <span class="input-group-btn">
+			                    <button style="height:34px;" class="btn btn-default" ng-click="openDateStage2DatePicker()">
+			                        <i class="glyphicon glyphicon-calendar"></i>
+			                    </button>
+			                </span>
+			            </div>
+		            </div>
+		  			<label class="col-sm-2 control-label">Letter 5</label>
+		  			<div class="col-sm-4">
+			            <div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="dateLetter5" name="dateLetter5" is-open="openedDateLetter5" close-text="Close" />
+			                <span class="input-group-btn">
+			                    <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter5DatePicker()">
+			                        <i class="glyphicon glyphicon-calendar"></i>
+			                    </button>
+			                </span>
+			            </div>
+		            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Is Stage 2?</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="isStage2" name="isStage2" ng-init="isStage2" ng-options="isStage2 for isStage2 in stage2Options" required></select>      				
+    				</div>
+		  		</div>
+		  		<br>
+				<div class="form-group" style="margin-top: 10px; margin-bottom: 0px !important;">
+	  				<div class="btn-group btn-group-justified" role="group" aria-label="...">
+						<div class="btn-group" role="group">
+							<input id="stage1InputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Stage1')" />
+							<button type="button" id="stage1Btn" class="btn btn-primary" ng-click="importFile('stage1InputBtn')">Stage 1</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="stage2InputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Stage2')" />
+							<button type="button" id="stage2Btn" class="btn btn-primary" ng-click="importFile('stage2InputBtn')">Stage 2</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="otherInputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Other')" />
+							<button type="button" id="otherBtn" class="btn btn-primary" ng-click="importFile('otherInputBtn')">Other</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="powerInputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'PowerPoint')" />
+							<button type="button" id="powerBtn" class="btn btn-primary" ng-click="importFile('powerInputBtn')">PowerPoint</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="titleInputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Title')" />
+							<button type="button" id="titleBtn" class="btn btn-primary" ng-click="importFile('titleInputBtn')">Title</button>
+						</div>
+					</div>
+		  		</div>
+		  		<div class="btn-group btn-group-justified" role="group" aria-label="...">
+		  			<table class="table" style="width: 878px; margin-left: -15px; margin-right: -15px; margin-bottom: 0px;">
+		  				<tr>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">{{ !stage1File ? '' : stage1File.name | limitTo : 25 }}</td>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">{{ !stage1File ? '' : stage2File.name | limitTo : 25 }}</td>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">{{ !otherFile ? '' : otherFile.name | limitTo : 25 }}</td>
+		  					<td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">{{ !powerFile ? '' : powerFile.name | limitTo : 25 }}</td>
+		  					<td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">{{ !titleFile ? '' : titleFile.name | limitTo : 25 }}</td>
+		  				</tr>
+		  			</table>
+		  		</div>		  	
+	 			<hr/>
+	 			<div class="form-group" style="margin-top: 10px; margin-bottom: 0px !important;">
+	 				<button class="btn btn-danger pull-right" ng-click="Close()">Close</button>
+		     		<button type="submit" class="btn btn-primary pull-right" ng-click="Save()" style="margin-right: 5px;"
+		     				  ng-disabled="userForm.siteLogNo.$invalid || userForm.siteName.$invalid">Save Property</button>
+	     		</div>
+	     	</form>     		
+ 		</div>
+	</script>
+
+	<!-- New Owner -->
+	<script type="text/ng-template" id="AddOwner_Modal.html">
+ 		<div class="modal-header" style="background: #eee;">
+     		<h1>Add Owner</h1>
+ 		</div>
+ 		<div class="modal-body">
+     		<form class="form-horizontal" style="padding-left: 10px; padding-right: 10px;">
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Owner Type</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="owner.type" placeholder="Owner Type">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Company Name</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="owner.companyName" placeholder="Company Name">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Individuals Names</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="owner.individualsNames" placeholder="Individuals Names">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Owner Address</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="owner.address" placeholder="Owner Address">
+    				</div>
+		  		</div>
+			</form>
+		</div>
+ 		<div class="modal-footer">
+     		<button class="btn btn-primary" ng-click="Save()">Save</button>
+     		<button class="btn btn-warning" ng-click="Cancel()">Cancel</button>
+ 		</div>
+	</script>
+
+	<!-- Edit Owner -->
+	<script type="text/ng-template" id="EditOwner_Modal.html">
+ 		<div class="modal-header" style="background: #eee;">
+     		<h1>Edit Owner</h1>
+ 		</div>
+ 		<div class="modal-body">
+     		<form class="form-horizontal" style="padding-left: 10px; padding-right: 10px;">
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Owner Type</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="params.type" placeholder="Owner Type">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Company Name</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="params.companyName" placeholder="Company Name">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Individuals Names</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="params.individualsNames" placeholder="Individuals Names">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Owner Address</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="params.address" placeholder="Owner Address">
+    				</div>
+		  		</div>
+			</form>
+		</div>
+ 		<div class="modal-footer">
+     		<button class="btn btn-primary" ng-click="Save()">Save</button>
+     		<button class="btn btn-warning" ng-click="Cancel()">Cancel</button>
+ 		</div>
+	</script>
+
+   <!-- EventDetails -->
+   <script type="text/ng-template" id="EventDetails_Modal.html">
+ 		<div class="modal-header" style="background: #eee;">
+     		<h1>{{ params.siteName }}</h1>
+ 		</div>
+ 		<div class="modal-body">
+ 			<form class="form-horizontal" name="userForm" style="padding-left: 10px; padding-right: 10px;">
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Log Number</label>
+		  			<div class="col-sm-2">
+      				<input type="number" min="1" class="form-control" ng-model="params.SiteLogNo" placeholder="Site No" readonly>
+    				</div> 				
+    				<label class="col-sm-4 control-label">Date Found</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.dateFound" is-open="false" close-text="Close" readonly />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Name</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="params.siteName" readonly>
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Notes</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="params.siteNotes" readonly>
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Address</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="params.siteAddress" readonly>
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Postcode</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="params.sitePostcode" readonly>
+    				</div>
+    				<label class="col-sm-2 control-label">Title Number</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="params.titleNumber" readonly>
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Type</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="params.propertyType" readonly>
+    				</div>
+    				<label class="col-sm-2 control-label">Street Name (Word Doc)</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="params.streetName" readonly>
+    				</div>
+		  		</div>
+		  		<br/>
+		  		<div class="form-group" style="margin-bottom: 10px !important;">
+		  			<table class="table table-striped table-bordered table-hover table-condensed" style="width: 100%; margin-bottom: 5px !important;">
+		  				<thead style='background: #337ab7; color: #ffffff;'>
+		               <tr>
+		                  <th style="width: 10%;">Owner Type</th>
+		                  <th style="width: 25%;">Company Name</th>
+		                  <th style="width: 25%;">Individuals Names</th>
+		                  <th style="width: 40%;">Address</th>
+		               </tr>
+		            </thead>
+		            <tbody ng-show="params.owners.length > 0">
+		            	<tr ng-repeat="owner in params.owners" style="height: 27px;">
+		            		<td>{{ owner.type }}</td>
+		            		<td>{{ owner.companyName }}</td>
+		            		<td>{{ owner.individualsNames }}</td>
+		            		<td>{{ owner.address }}</td>
+		            	</tr>
+		            </tbody>
+		            <tbody ng-show="params.owners.length == 0">
+		            	<tr style="height: 27px;">
+		            		<td></td>
+		            		<td></td>
+		            		<td></td>
+		            	</tr>
+		            </tbody>
+		  			</table>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Title Area (acres)</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="params.titleArea" readonly>
+    				</div>
+    				<label class="col-sm-2 control-label">Template Letter 1</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="params.templateLetter1" readonly>
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">View Site</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="params.landInsightSite" readonly>
+    				</div>
+    				<label class="col-sm-2 control-label">Letter 1</label>
+		  			<div class="col-sm-4">
+		  				<div class="input-group">
+		            	<input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.stages.letter1.scheduledDate" is-open="false" close-text="Close" readonly />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>    				
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">View Title</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="params.landInsightTitle" readonly>
+    				</div>
+    				<label class="col-sm-2 control-label">Letter 2 (8W)</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		            	<input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.stages.letter2.scheduledDate" is-open="false" close-text="Close" readonly />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>	            
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Qualify?</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="params.qualify" readonly>
+    				</div>
+	            <label class="col-sm-2 control-label">Letter 3 (16W)</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.stages.letter3.scheduledDate" is-open="false" close-text="Close" readonly />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Stage 1</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		               <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.stages.stage1.scheduledDate" is-open="false" close-text="Close" readonly />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>
+	            <label class="col-sm-2 control-label">Letter 4</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.stages.letter4.scheduledDate" is-open="false" close-text="Close" readonly />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>		  		
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Stage 2</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.stages.stage2.scheduledDate" is-open="false" close-text="Close" readonly />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  			<label class="col-sm-2 control-label">Letter 5</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.stages.letter5.scheduledDate" is-open="false" close-text="Close" readonly />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>	            
+		  		</div>
+		  		<br>
+				<div class="form-group" style="margin-top: 10px; margin-bottom: 0px !important;">
+	  				<div class="btn-group btn-group-justified" role="group" aria-label="...">
+						<div class="btn-group" role="group">
+							<button type="button" id="stage1Btn" class="btn" ng-class="params.fileStage1 ? 'btn-default' : 'btn-primary'">Stage 1</button>
+						</div>
+						<div class="btn-group" role="group">
+							<button type="button" id="stage2Btn" class="btn" ng-class="params.fileStage2 ? 'btn-default' : 'btn-primary'">Stage 2</button>
+						</div>
+						<div class="btn-group" role="group">
+							<button type="button" id="otherBtn" class="btn" ng-class="params.fileOther ? 'btn-default' : 'btn-primary'">Other</button>
+						</div>
+						<div class="btn-group" role="group">
+							<button type="button" id="powerBtn" class="btn" ng-class="params.filePowerPoint ? 'btn-default' : 'btn-primary'">PowerPoint</button>
+						</div>
+						<div class="btn-group" role="group">
+							<button type="button" id="titleBtn" class="btn" ng-class="params.fileTitle ? 'btn-default' : 'btn-primary'">Title</button>
+						</div>
+					</div>
+		  		</div>
+		  		<div class="btn-group btn-group-justified" role="group" aria-label="...">
+		  			<table class="table" style="width: 878px; margin-left: -15px; margin-right: -15px; margin-bottom: 0px;">
+		  				<tr>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ params.fileStage1 }}" ng-show="params.fileStage1">{{ params.fileStage1 | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage2/{{ params.fileStage2 }}" ng-show="params.fileStage2">{{ params.fileStage2 | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/other/{{ params.fileOther }}" ng-show="params.fileOther">{{ params.fileOther | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/power/{{ params.filePowerPoint }}" ng-show="params.filePowerPoint">{{ params.filePowerPoint | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/title/{{ params.fileTitle }}" ng-show="params.fileTitle">{{ params.fileTitle | limitTo : 25 }}</a>
+		  					</td>
+		  				</tr>
+		  			</table>
+		  		</div>
+	     	</form>  
+ 		</div>
+ 		<div class="modal-footer">
+     		<button class="btn btn-primary" ng-click="Hide()">Hide</button>
+ 		</div>
+	</script>
+
+	<!-- EditEvent Calendar-->
+	<script type="text/ng-template" id="EditProperty_Modal.html">
+ 		<div class="modal-header" style="background: #eee;">
+     		<h1>Edit Event</h1>
+ 		</div>
+ 		<div class="modal-body">
+     		<form class="form-horizontal" name="userForm" style="padding-left: 10px; padding-right: 10px;" novalidate>
+		  		<div class="form-group" style="margin-bottom: 5px !important;" ng-class="{'has-error': userForm.SiteLogNo.$invalid}">
+		  			<label class="col-sm-2 control-label">Site Log Number</label>
+		  			<div class="col-sm-2">
+      				<input type="number" min="1" class="form-control" ng-model="data.SiteLogNo" name="SiteLogNo" required>
+    				</div> 				
+    				<label class="col-sm-4 control-label">Date Found</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.dateFound" name="dateFound" is-open="openedDateFound" ng-required="true" close-text="Close" />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default" ng-click="openDateFoundDatePicker()">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;" ng-class="{'has-error': userForm.SiteName.$invalid}">
+		  			<label class="col-sm-2 control-label">Site Name</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="data.siteName" name="siteName" placeholder="Site Name" ng-change="siteNameChanged()" required>
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Notes</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="data.siteNotes">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Address</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="data.siteAddress">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Postcode</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.sitePostcode">
+    				</div>
+    				<label class="col-sm-2 control-label">Title Number</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.titleNumber">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Type</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="data.propertyType" name="propertyType" ng-init="propertyType" ng-options="propertyType for propertyType in propertyTypes" required></select>      				
+    				</div>
+    				<label class="col-sm-2 control-label">Street Name (Word Doc)</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.streetName">
+    				</div>
+		  		</div>
+		  		<br/>
+		  		<div class="form-group" style="margin-bottom: 10px !important;">
+		  			<table class="table table-striped table-bordered table-hover table-condensed" style="width: 100%; margin-bottom: 5px !important;">
+		  				<thead style='background: #337ab7; color: #ffffff;'>
+			               <tr>
+			                  <th style="width: 10%;">Owner Type</th>
+			                  <th style="width: 25%;">Company Name</th>
+			                  <th style="width: 25%;">Individuals Names</th>
+			                  <th style="width: 40%;">Address</th>
+			               </tr>
+			            </thead>
+			            <tbody ng-show="data.owners.length > 0">
+			            	<tr ng-repeat="owner in data.owners" ng-click="setActiveOwner($index)" data-ng-class="{ success: owner.selected == 'selected' }" style="height: 27px;">
+			            		<td>{{ owner.type }}</td>
+			            		<td>{{ owner.companyName }}</td>
+			            		<td>{{ owner.individualsNames }}</td>
+			            		<td>{{ owner.address }}</td>
+			            	</tr>
+			            </tbody>
+			            <tbody ng-show="data.owners.length == 0">
+			            	<tr style="height: 27px;">
+			            		<td></td>
+			            		<td></td>
+			            		<td></td>
+			            	</tr>
+			            </tbody>
+		  			</table>
+		  			<a class="btn btn-primary active" role="button" ng-click="addOwner()">Add</a>
+	               	<a class="btn btn-warning active" role="button" ng-click="editOwner()" ng-disabled="activeOwner == -1">Edit</a>
+	               	<a class="btn btn-danger active" role="button" ng-click="removeOwner()" ng-disabled="activeOwner == -1">Remove</a>
+	               	<a class="btn btn-danger active" role="button" ng-click="removeOwners()" ng-disabled="owners.length == 0">Remove All</a>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Title Area (acres)</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.titleArea">
+    				</div>
+    				<label class="col-sm-2 control-label">Template Letter 1</label>
+    				<div class="col-sm-4">
+      				<select class="form-control" ng-model="data.templateLetter1" name="templateLetter1" ng-init="data.templateLetter1" ng-options="templateLetter1 for templateLetter1 in templatesLetter1" required></select>      				
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">View Site</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.landInsightSite">
+    				</div>
+    				<label class="col-sm-2 control-label">Letter 1</label>
+		  			<div class="col-sm-4">
+		  				<div class="input-group">
+		            	<input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter1.scheduledDate" name="dateLetter1" is-open="openedDateLetter1" close-text="Close" ng-change="updateLetterDates()" />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter1DatePicker()">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>    				
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">View Title</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.landInsightTitle">
+    				</div>
+    				<label class="col-sm-2 control-label">Letter 2 (8W)</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		            	<input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter2.scheduledDate" name="dateLetter2" is-open="openedDateLetter2" close-text="Close" />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter2DatePicker()">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>	            
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Qualify?</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="data.qualify" name="qualify" ng-init="data.qualify" ng-options="qualify for qualify in qualifyOptions" required></select>      				
+    				</div>
+	            	<label class="col-sm-2 control-label">Letter 3 (16W)</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter3.scheduledDate" name="dateLetter3" is-open="openedDateLetter3" close-text="Close" />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter3DatePicker()">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Stage 1</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		               <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.stage1.scheduledDate" name="dateStage1" is-open="openedDateStage1" close-text="Close" />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default" ng-click="openDateStage1DatePicker()">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>
+	            <label class="col-sm-2 control-label">Letter 4</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter4.scheduledDate" name="dateLetter4" is-open="openedDateLetter4" close-text="Close" />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter4DatePicker()">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>		  		
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Stage 2</label>
+		  			<div class="col-sm-4">
+			            <div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.stage2.scheduledDate" name="dateStage2" is-open="openedDateStage2" close-text="Close" />
+			                <span class="input-group-btn">
+			                    <button style="height:34px;" class="btn btn-default" ng-click="openDateStage2DatePicker()">
+			                        <i class="glyphicon glyphicon-calendar"></i>
+			                    </button>
+			                </span>
+			            </div>
+		            </div>
+		  			<label class="col-sm-2 control-label">Letter 5</label>
+		  			<div class="col-sm-4">
+			            <div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter5.scheduledDate" name="dateLetter5" is-open="openedDateLetter5" close-text="Close" />
+			                <span class="input-group-btn">
+			                    <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter5DatePicker()">
+			                        <i class="glyphicon glyphicon-calendar"></i>
+			                    </button>
+			                </span>
+			            </div>
+		            </div>	            
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Is Stage 2?</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="data.isStage2" name="isStage2" ng-init="data.isStage2" ng-options="isStage2 for isStage2 in stage2Options" required></select> 
+    				</div>
+		  		</div>
+		  		<br>
+				<div class="form-group" style="margin-top: 10px; margin-bottom: 0px !important;">
+	  				<div class="btn-group btn-group-justified" role="group" aria-label="...">
+						<div class="btn-group" role="group">
+							<input id="stage1InputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Stage1')" />
+							<button type="button" id="stage1Btn" class="btn" ng-click="importFile('stage1InputBtn')" ng-class="data.fileStage1 ? 'btn-default' : 'btn-primary'">Stage 1</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="stage2InputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Stage2')" />
+							<button type="button" id="stage2Btn" class="btn" ng-click="importFile('stage2InputBtn')" ng-class="data.fileStage2 ? 'btn-default' : 'btn-primary'">Stage 2</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="otherInputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Other')" />
+							<button type="button" id="otherBtn" class="btn" ng-click="importFile('otherInputBtn')" ng-class="data.fileOther ? 'btn-default' : 'btn-primary'">Other</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="powerInputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'PowerPoint')" />
+							<button type="button" id="powerBtn" class="btn" ng-click="importFile('powerInputBtn')" ng-class="data.filePowerPoint ? 'btn-default' : 'btn-primary'">PowerPoint</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="titleInputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Title')" />
+							<button type="button" id="titleBtn" class="btn" ng-click="importFile('titleInputBtn')" ng-class="data.fileTitle ? 'btn-default' : 'btn-primary'">Title</button>
+						</div>
+					</div>
+		  		</div>
+		  		<div class="btn-group btn-group-justified" role="group" aria-label="...">
+		  			<table class="table" style="width: 878px; margin-left: -15px; margin-right: -15px; margin-bottom: 0px;">
+		  				<tr>		  			
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.fileStage1 }}" ng-show="data.fileStage1">{{ data.fileStage1 | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.fileStage2 }}" ng-show="data.fileStage2">{{ data.fileStage2 | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.fileOther }}" ng-show="data.fileOther">{{ data.fileOther | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.filePowerPoint }}" ng-show="data.filePowerPoint">{{ data.filePowerPoint | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.fileTitle }}" ng-show="data.fileTitle">{{ data.fileTitle | limitTo : 25 }}</a>
+		  					</td>
+		  				</tr>
+		  			</table>
+		  		</div>		  	
+	 			<hr/>
+	 			<div class="form-group" style="margin-top: 10px; margin-bottom: 0px !important;">
+		     		<button class="btn btn-danger pull-right" ng-click="Close()">Close</button>
+		     		<button type="submit" class="btn btn-primary pull-right" ng-click="Save()" style="margin-right: 5px;"
+		     				  ng-disabled="data.SiteLogNo.$invalid || data.SiteName.$invalid">Update</button>
+	     		</div>
+	     	</form>  
+		</div> 		
+	</script>
+
+	<!-- EditEvent DB -->
+	<script type="text/ng-template" id="EditPropertyDB_Modal.html">
+ 		<div class="modal-header" style="background: #eee;">
+     		<h1>Edit Event</h1>
+ 		</div>
+ 		<div class="modal-body">
+     		<form class="form-horizontal" name="userForm" style="padding-left: 10px; padding-right: 10px;" novalidate>
+		  		<div class="form-group" style="margin-bottom: 5px !important;" ng-class="{'has-error': userForm.SiteLogNo.$invalid}">
+		  			<label class="col-sm-2 control-label">Site Log Number</label>
+		  			<div class="col-sm-2">
+      				<input type="number" min="1" class="form-control" ng-model="data.SiteLogNo" name="SiteLogNo" required>
+    				</div> 				
+    				<label class="col-sm-4 control-label">Date Found</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.dateFound" name="dateFound" is-open="openedDateFound" ng-required="true" close-text="Close" />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default" ng-click="openDateFoundDatePicker()">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;" ng-class="{'has-error': userForm.SiteName.$invalid}">
+		  			<label class="col-sm-2 control-label">Site Name</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="data.siteName" name="siteName" placeholder="Site Name" ng-change="siteNameChanged()" required>
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Notes</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="data.siteNotes">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Address</label>
+		  			<div class="col-sm-10">
+      				<input type="text" class="form-control" ng-model="data.siteAddress">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Site Postcode</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.sitePostcode">
+    				</div>
+    				<label class="col-sm-2 control-label">Title Number</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.titleNumber">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Type</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="data.propertyType" name="propertyType" ng-init="propertyType" ng-options="propertyType for propertyType in propertyTypes" required></select>      				
+    				</div>
+    				<label class="col-sm-2 control-label">Street Name (Word Doc)</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.streetName">
+    				</div>
+		  		</div>
+		  		<br/>
+		  		<div class="form-group" style="margin-bottom: 10px !important;">
+		  			<table class="table table-striped table-bordered table-hover table-condensed" style="width: 100%; margin-bottom: 5px !important;">
+		  				<thead style='background: #337ab7; color: #ffffff;'>
+			               <tr>
+			                  <th style="width: 10%;">Owner Type</th>
+			                  <th style="width: 25%;">Company Name</th>
+			                  <th style="width: 25%;">Individuals Names</th>
+			                  <th style="width: 40%;">Address</th>
+			               </tr>
+			            </thead>
+			            <tbody ng-show="data.owners.length > 0">
+			            	<tr ng-repeat="owner in data.owners" ng-click="setActiveOwner($index)" data-ng-class="{ success: owner.selected == 'selected' }" style="height: 27px;">
+			            		<td>{{ owner.type }}</td>
+			            		<td>{{ owner.companyName }}</td>
+			            		<td>{{ owner.individualsNames }}</td>
+			            		<td>{{ owner.address }}</td>
+			            	</tr>
+			            </tbody>
+			            <tbody ng-show="data.owners.length == 0">
+			            	<tr style="height: 27px;">
+			            		<td></td>
+			            		<td></td>
+			            		<td></td>
+			            	</tr>
+			            </tbody>
+		  			</table>
+		  			<a class="btn btn-warning active" role="button" ng-click="editOwner()" ng-disabled="activeOwner == -1">Edit</a>
+	               	<a class="btn btn-danger active" role="button" ng-click="removeOwner()" ng-disabled="activeOwner == -1">Remove</a>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Title Area (acres)</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.titleArea">
+    				</div>
+    				<label class="col-sm-2 control-label">Template Letter 1</label>
+    				<div class="col-sm-4">
+      				<select class="form-control" ng-model="data.templateLetter1" name="templateLetter1" ng-init="data.templateLetter1" ng-options="templateLetter1 for templateLetter1 in templatesLetter1" required></select>      				
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">View Site</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.landInsightSite">
+    				</div>
+    				<label class="col-sm-2 control-label">Letter 1</label>
+		  			<div class="col-sm-4">
+		  				<div class="input-group">
+		            	<input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter1.scheduledDate" name="dateLetter1" is-open="openedDateLetter1" close-text="Close" ng-change="updateLetterDates()" />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter1DatePicker()">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>    				
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">View Title</label>
+		  			<div class="col-sm-4">
+      				<input type="text" class="form-control" ng-model="data.landInsightTitle">
+    				</div>
+    				<label class="col-sm-2 control-label">Letter 2 (8W)</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		            	<input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter2.scheduledDate" name="dateLetter2" is-open="openedDateLetter2" close-text="Close" />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter2DatePicker()">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>	            
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Qualify?</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="data.qualify" name="qualify" ng-init="data.qualify" ng-options="qualify for qualify in qualifyOptions" required></select>      				
+    				</div>
+	            	<label class="col-sm-2 control-label">Letter 3 (16W)</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter3.scheduledDate" name="dateLetter3" is-open="openedDateLetter3" close-text="Close" />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter3DatePicker()">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Stage 1</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		               <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.stage1.scheduledDate" name="dateStage1" is-open="openedDateStage1" close-text="Close" />
+		               <span class="input-group-btn">
+		                  <button style="height:34px;" class="btn btn-default" ng-click="openDateStage1DatePicker()">
+		                     <i class="glyphicon glyphicon-calendar"></i>
+		                  </button>
+		               </span>
+		            </div>
+	            </div>
+	            <label class="col-sm-2 control-label">Letter 4</label>
+		  			<div class="col-sm-4">
+		            <div class="input-group">
+		                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter4.scheduledDate" name="dateLetter4" is-open="openedDateLetter4" close-text="Close" />
+		                <span class="input-group-btn">
+		                    <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter4DatePicker()">
+		                        <i class="glyphicon glyphicon-calendar"></i>
+		                    </button>
+		                </span>
+		            </div>
+	            </div>
+		  		</div>		  		
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Stage 2</label>
+		  			<div class="col-sm-4">
+			            <div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.stage2.scheduledDate" name="dateStage2" is-open="openedDateStage2" close-text="Close" />
+			                <span class="input-group-btn">
+			                    <button style="height:34px;" class="btn btn-default" ng-click="openDateStage2DatePicker()">
+			                        <i class="glyphicon glyphicon-calendar"></i>
+			                    </button>
+			                </span>
+			            </div>
+		            </div>
+		  			<label class="col-sm-2 control-label">Letter 5</label>
+		  			<div class="col-sm-4">
+			            <div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="data.stages.letter5.scheduledDate" name="dateLetter5" is-open="openedDateLetter5" close-text="Close" />
+			                <span class="input-group-btn">
+			                    <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter5DatePicker()">
+			                        <i class="glyphicon glyphicon-calendar"></i>
+			                    </button>
+			                </span>
+			            </div>
+		            </div>	            
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">Is Stage 2?</label>
+		  			<div class="col-sm-4">
+      				<select class="form-control" ng-model="data.isStage2" name="isStage2" ng-init="data.isStage2" ng-options="isStage2 for isStage2 in stage2Options" required></select> 
+    				</div>
+		  		</div>
+		  		<br>
+				<div class="form-group" style="margin-top: 10px; margin-bottom: 0px !important;">
+	  				<div class="btn-group btn-group-justified" role="group" aria-label="...">
+						<div class="btn-group" role="group">
+							<input id="stage1InputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Stage1')" />
+							<button type="button" id="stage1Btn" class="btn" ng-click="importFile('stage1InputBtn')" ng-class="data.fileStage1 ? 'btn-default' : 'btn-primary'">Stage 1</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="stage2InputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Stage2')" />
+							<button type="button" id="stage2Btn" class="btn" ng-click="importFile('stage2InputBtn')" ng-class="data.fileStage2 ? 'btn-default' : 'btn-primary'">Stage 2</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="otherInputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Other')" />
+							<button type="button" id="otherBtn" class="btn" ng-click="importFile('otherInputBtn')" ng-class="data.fileOther ? 'btn-default' : 'btn-primary'">Other</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="powerInputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'PowerPoint')" />
+							<button type="button" id="powerBtn" class="btn" ng-click="importFile('powerInputBtn')" ng-class="data.filePowerPoint ? 'btn-default' : 'btn-primary'">PowerPoint</button>
+						</div>
+						<div class="btn-group" role="group">
+							<input id="titleInputBtn" type="file" style="display:none;" onchange="angular.element(this).scope().setFile(this.files[0], 'Title')" />
+							<button type="button" id="titleBtn" class="btn" ng-click="importFile('titleInputBtn')" ng-class="data.fileTitle ? 'btn-default' : 'btn-primary'">Title</button>
+						</div>
+					</div>
+		  		</div>
+		  		<div class="btn-group btn-group-justified" role="group" aria-label="...">
+		  			<table class="table" style="width: 878px; margin-left: -15px; margin-right: -15px; margin-bottom: 0px;">
+		  				<tr>		  			
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.fileStage1 }}" ng-show="data.fileStage1">{{ data.fileStage1 | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.fileStage2 }}" ng-show="data.fileStage2">{{ data.fileStage2 | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.fileOther }}" ng-show="data.fileOther">{{ data.fileOther | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.filePowerPoint }}" ng-show="data.filePowerPoint">{{ data.filePowerPoint | limitTo : 25 }}</a>
+		  					</td>
+		  					<td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+		  						<a href="files/stage1/{{ data.fileTitle }}" ng-show="data.fileTitle">{{ data.fileTitle | limitTo : 25 }}</a>
+		  					</td>
+		  				</tr>
+		  			</table>
+		  		</div>		  	
+	 			<hr/>
+	 			<div class="form-group" style="margin-top: 10px; margin-bottom: 0px !important;">
+		     		<button class="btn btn-danger pull-right" ng-click="Close()">Close</button>
+		     		<button type="submit" class="btn btn-primary pull-right" ng-click="Save()" style="margin-right: 5px;"
+		     				  ng-disabled="data.SiteLogNo.$invalid || data.SiteName.$invalid">Update</button>
+	     		</div>
+	     	</form>  
+		</div> 		
+	</script>
+
+	<!-- UploadTemplates -->
+   <script type="text/ng-template" id="UploadTemplates_Modal.html">
+ 		<div class="modal-header" style="background: #eee;">
+     		<h1>Upload Templates</h1>
+ 		</div>
+ 		<div class="modal-body">
+ 			<ul class="list-group">
+     			<li class="list-group-item list-group-item" style="background: #337ab7; color: #ffffff; padding-bottom: 15px;">
+     				Letter 1
+     				<input type="file" id="file1" name="file1" ngf-select="getTheFiles($files)" />        				
+     			</li>
+				<li class="list-group-item list-group-item" style="background: #5cb85c; color: #ffffff; padding-bottom: 15px;">
+					Letter 2
+					<input type="file" id="file2" name="file2" ngf-select="getTheFiles($files)" />  						
+				</li>
+				<li class="list-group-item list-group-item" style="background: #5bc0de; color: #ffffff; padding-bottom: 15px;">
+					Letter 3
+					<input type="file" id="file3" name="file3" ngf-select="getTheFiles($files)" />  						
+				</li>
+				<li class="list-group-item list-group-item" style="background: #f0ad4e; color: #ffffff; padding-bottom: 15px;">
+					Letter 4
+					<input type="file" id="file4" name="file4" ngf-select="getTheFiles($files)" />
+				</li>
+				<li class="list-group-item list-group-item" style="background: #d9534f; color: #ffffff; padding-bottom: 15px;">
+					Letter 5
+					<input type="file" id="file5" name="file5" ngf-select="getTheFiles($files)" />
+				</li>
+			</ul>
+ 		</div>
+ 		<div class="modal-footer">
+     		<button class="btn btn-primary" ng-click="Hide()">Hide</button>
+ 		</div>
+	</script>
+
+	<!-- Remove Property -->
+	<script type="text/ng-template" id="RemoveProperty_Modal.html">
+		<div class="modal-header" style="background: #eee;">
+     		<h1>Remove Property</h1>
+ 		</div>
+ 		<div class="modal-body">
+ 			<h2>Are you sure to remove property?</h2>
+ 		</div>
+ 		<div class="modal-footer">
+     		<button class="btn btn-primary" ng-click="Confirm()">Confirm</button>
+     		<button class="btn btn-danger" ng-click="Cancel()">Cancel</button>
+ 		</div>
+	</script>
+
+	<!-- New ToDo -->
+	<script type="text/ng-template" id="AddToDo_Modal.html">
+ 		<div class="modal-header" style="background: #eee;">
+     		<h1>Add ToDo</h1>
+ 		</div>
+ 		<div class="modal-body">
+     		<form class="form-horizontal" style="padding-left: 10px; padding-right: 10px;">
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Title</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="todo.title" placeholder="Title">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Description</label>
+		  			<div class="col-sm-9">
+      				<input type="text" class="form-control" ng-model="todo.description" placeholder="Description">
+    				</div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Reminder Date</label>
+		  			<div class="col-sm-9">
+			            <div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="todo.dateReminder" name="dateReminder" is-open="openedDateReminder" close-text="Close" />
+			                <span class="input-group-btn">
+			                	<button style="height:34px;" class="btn btn-default" ng-click="openDateReminderPicker()">
+		                        	<i class="glyphicon glyphicon-calendar"></i>
+		                    	</button>
+			                </span>
+			            </div>
+		            </div>
+		  		</div>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-3 control-label">Actual Date</label>
+		  			<div class="col-sm-9">
+	      				<div class="input-group">
+			                <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="todo.dateActual" name="dateActual" is-open="openedDateActual" close-text="Close" />
+			                <span class="input-group-btn">
+			                	<button style="height:34px;" class="btn btn-default" ng-click="openDateActualPicker()">
+		                        	<i class="glyphicon glyphicon-calendar"></i>
+		                    	</button>
+			                </span>
+			            </div>
+	                </div>
+		  		</div>
+			</form>
+		</div>
+ 		<div class="modal-footer">
+     		<button class="btn btn-primary" ng-click="Save()">Save</button>
+     		<button class="btn btn-warning" ng-click="Cancel()">Cancel</button>
+ 		</div>
+	</script>
+
+	<!-- Remove ToDo -->
+	<script type="text/ng-template" id="RemoveToDo_Modal.html">
+		<div class="modal-header" style="background: #eee;">
+     		<h1>Remove ToDo</h1>
+ 		</div>
+ 		<div class="modal-body">
+ 			<h2>Are you sure to remove ToDo?</h2>
+ 		</div>
+ 		<div class="modal-footer">
+     		<button class="btn btn-primary" ng-click="Confirm()">Confirm</button>
+     		<button class="btn btn-danger" ng-click="Cancel()">Cancel</button>
+ 		</div>
+	</script>
+
+	<!-- Database View -->
+	<script type="text/ng-template" id="Database.html">
+		<div class="container-fluid">
+			<div class="navbar navbar-inverse navbar-twitch" role="navigation">
+				<div class="container">
+					<div>
+						<ul class="nav navbar-nav">
+							<li>
+								<a href="#">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Calendar"> 
+										<i class="fa fa-calendar" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Calendar</span>
+								</a>
+							</li>
+							<li class="active">
+								<a href="#database">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database"> 
+										<i class="fa fa-database" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Database Stage 1</span>
+								</a>
+							</li>
+							<li>
+								<a href="#database2">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database"> 
+										<i class="fa fa-table" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Database Stage 2</span>
+								</a>
+							</li>
+							<li>
+								<a href="#charts">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Charts"> 
+										<i class="fa fa-line-chart" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Charts</span>
+								</a>
+							</li>
+							<li>
+								<a href="#database" ng-click="ExportData()">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Export"> 
+										<i class="fa fa-floppy-o" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Export</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-left: -30px; margin-top: -15px;">
+				<table st-table="displayedCollection" st-safe-src="dbTableEvents" class="table table-striped table-bordered dbTbl" style="margin-bottom: 0px;">
+	      			<thead>
+	      				<tr class="text-center" >
+	      					<th style="width: 40px !important;">Edit</th>
+	      					<th style="width: 40px !important;">Copy</th>
+	      					<th style="width: 50px !important;" st-sort="SiteLogNo">Site Log No</th>
+	      					<th style="width: 60px !important;" st-sort="dateFound">Date Found</th>
+	      					<th style="width: 150px !important;" st-sort="siteName">Site Name</th>
+	      					<th style="width: 300px !important;">Site Notes</th>
+	      					<th style="width: 150px !important;">Site Address</th>
+	      					<th style="width: 100px !important;">Street Name</th>
+	      					<th style="width: 100px !important;">Site Postcode</th>
+	      					<th style="width: 80px !important;">Title Number</th>
+	      					<th style="width: 70px !important;">Freehold Leasehold</th>
+	      					<th style="width: 100px !important;">Owner Type</th>
+	      					<th style="width: 150px !important;">Company Name</th>
+	      					<th style="width: 150px !important;">Individuals Names</th>
+	      					<th style="width: 200px !important;">Owner Address</th>
+	      					<th style="width: 50px !important;">Title Area (acres)</th>
+	      					<th style="width: 50px !important;">View Site on Land Insight</th>
+	      					<th style="width: 50px !important;">View Title on Land Insight</th>
+	      					<th style="width: 60px !important;">Stage 1</th>
+	      					<th style="width: 50px !important;">Qualify?</th>
+	      					<th style="width: 60px !important;">Letter 1</th>
+	      					<th style="width: 60px !important;">Letter 2</th>
+	      					<th style="width: 60px !important;">Letter 3</th>
+	      					<th style="width: 60px !important;">Letter 4</th>
+	      					<th style="width: 60px !important;">Letter 5</th>
+	      					<th style="width: 60px !important;">Stage 2</th>
+	      					<th style="width: 50px !important;">Delete</th>
+	      					<th style="width: 80px !important;">Disable</th>
+	      				</tr>
+	      			</thead>
+	      		</table>
+				<div class="table-responsive" id="dbTable" style="height: 89vh; width: 2517px !important;">
+	      		<table st-table="displayedCollection" class="table table-striped table-bordered dbTbl" id="dbTbl">
+	      			<tbody>
+	      				<tr id="db-{{ $index }}" ng-repeat="dayEvent in displayedCollection" ng-click="setActiveLine($index)" data-ng-class="{ success: dayEvent.selected == 'selected' }">
+	      					<td style="width: 40px !important; color: red;">
+	      						<i class="fa fa-pencil fa-lg" aria-hidden="true" ng-click="editPropertyByID(dayEvent)"></i>	      						
+	      					</td>
+	      					<td style="width: 40px !important; color: darkorange;">
+	      						<i class="fa fa-files-o fa-lg" aria-hidden="true" ng-click="duplicateRecord(dayEvent)"></i>
+	      					</td>
+	      					<td style="width: 50px !important;">{{ dayEvent.SiteLogNo }}</td>
+	      					<td style="width: 60px !important;">{{ dayEvent.dateFound | date : 'dd MMM yyyy' }}</td>
+	      					<td style="width: 150px !important;">{{ dayEvent.siteName }}</td>
+	      					<td style="width: 300px !important;">{{ dayEvent.siteNotes }}</td>
+	      					<td style="width: 150px !important;">{{ dayEvent.siteAddress }}</td>
+	      					<td style="width: 100px !important;">{{ dayEvent.streetName }}</td>
+	      					<td style="width: 100px !important;">{{ dayEvent.sitePostcode }}</td>
+	      					<td style="width: 80px !important;">
+	      						<a target="_blank" ng-href="files/title/{{ dayEvent.fileTitle }}" ng-show="dayEvent.fileTitle">{{ dayEvent.titleNumber }}</a>
+	      						<span ng-show="!dayEvent.fileTitle">{{ dayEvent.titleNumber }}</span>
+	      					</td>
+	      					<td style="width: 70px !important;">{{ dayEvent.propertyType }}</td>
+	      					<td style="width: 100px !important;">{{ dayEvent.owner_type }}</td>
+	      					<td style="width: 150px !important;">{{ dayEvent.companyName }}</td>
+	      					<td style="width: 150px !important;">{{ dayEvent.individualsNames }}</td>
+	      					<td style="width: 200px !important;">{{ dayEvent.owner_address }}</td>
+	      					<td style="width: 50px !important;">{{ dayEvent.titleArea }}</td>
+	      					<td style="width: 50px !important;">
+	      						<a target="_blank" ng-href="{{ dayEvent.landinsightSite }}" ng-show="dayEvent.landinsightSite">LINK</a>	      						
+	      					</td>
+	      					<td style="width: 50px !important;">
+	      						<a target="_blank" ng-href="{{ dayEvent.landinsightTitle }}" ng-show="dayEvent.landinsightTitle">LINK</a>
+	      					</td>
+	      					<td style="width: 60px !important;">
+	      						{{ dayEvent.Stage1 | date : 'dd MMM yyyy' }}
+	      					</td>
+	      					<td style="width: 50px !important;">{{ dayEvent.qualify }}</td>
+	      					<td style="width: 60px !important;">
+	      						<i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter1" ng-click="processWordTemplate(dayEvent, 'Letter1')" style="color: green;"></i>
+	      						{{ dayEvent.Letter1 | date : 'dd MMM yyyy' }}
+	      					</td>
+	      					<td style="width: 60px !important;">
+	      						<i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter2" ng-click="processWordTemplate(dayEvent, 'Letter2')" style="color: green;"></i>
+	      						{{ dayEvent.Letter2 | date : 'dd MMM yyyy' }}
+	      					</td>
+	      					<td style="width: 60px !important;">
+	      						<i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter3" ng-click="processWordTemplate(dayEvent, 'Letter3')" style="color: green;"></i>
+	      						{{ dayEvent.Letter3 | date : 'dd MMM yyyy' }}
+	      					</td>
+	      					<td style="width: 60px !important;">
+	      						<i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter4" ng-click="processWordTemplate(dayEvent, 'Letter4')" style="color: green;"></i>
+	      						{{ dayEvent.Letter4 | date : 'dd MMM yyyy' }}
+	      					</td>
+	      					<td style="width: 60px !important;">
+	      						<i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter5" ng-click="processWordTemplate(dayEvent, 'Letter5')" style="color: green;"></i>
+	      						{{ dayEvent.Letter5 | date : 'dd MMM yyyy' }}
+	      					</td>
+	      					<td style="width: 60px !important;">
+	      						{{ dayEvent.Stage2 | date : 'dd MMM yyyy' }}
+	      					</td>
+	      					<td style="width: 50px !important; color: red;">
+	      						<i class="fa fa-trash-o fa-lg" aria-hidden="true" ng-click="deleteProperty(dayEvent)"></i>	      						
+	      					</td>
+	      					<td style="width: 80px !important;">
+	      						<input type="checkbox" ng-model="dayEvent.disabled" ng-init="dayEvent.disabled" ng-change="updateDisabled(dayEvent)">
+	      					</td>
+	      				</tr>
+	      			</tbody>
+	      		</table>
+	      	</div>
+      	</div>
+      </div>
+	</script>
+
+	<!-- Database View -->
+	<script type="text/ng-template" id="Database2.html">
+		<div class="container-fluid">
+			<div class="navbar navbar-inverse navbar-twitch" role="navigation">
+				<div class="container">
+					<div>
+						<ul class="nav navbar-nav">
+							<li>
+								<a href="#">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Calendar"> 
+										<i class="fa fa-calendar" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Calendar</span>
+								</a>
+							</li>
+							<li>
+								<a href="#database">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database"> 
+										<i class="fa fa-database" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Database Stage 1</span>
+								</a>
+							</li>
+							<li class="active">
+								<a href="#database2">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database"> 
+										<i class="fa fa-table" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Database Stage 2</span>
+								</a>
+							</li>
+							<li>
+								<a href="#charts">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Charts"> 
+										<i class="fa fa-line-chart" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Charts</span>
+								</a>
+							</li>							
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-left: -30px; margin-top: -15px;">
+				<table st-table="displayedCollection" st-safe-src="dbTableEvents" class="table table-striped table-bordered dbTbl" style="margin-bottom: 0px;">
+	      			<thead>
+	      				<tr class="text-center" >
+	      					<th style="width: 40px !important;">Edit</th>
+	      					<th style="width: 40px !important;">Copy</th>
+	      					<th style="width: 50px !important;" st-sort="SiteLogNo">Site Log No</th>
+	      					<th style="width: 60px !important;" st-sort="dateFound">Date Logged</th>
+	      					<th style="width: 150px !important;" st-sort="siteName">Site Name</th>
+	      					<th style="width: 150px !important;">Site Address</th>
+	      					<th style="width: 100px !important;">Site Postcode</th>
+	      					<th style="width: 100px !important;">Stage 2 Submitted PDF</th>	
+	      					<th style="width: 300px !important;">Site Notes</th>
+	      					<th style="width: 80px !important;">Title Number</th>
+	      					<th style="width: 70px !important;">Freehold Leasehold</th>
+	      					<th style="width: 100px !important;">Owner Type</th>
+	      					<th style="width: 150px !important;">Company Name</th>
+	      					<th style="width: 150px !important;">Individuals Names</th>
+	      					<th style="width: 200px !important;">Owner Address</th>
+	      					<th style="width: 50px !important;">Title Area (acres)</th>
+	      					<th style="width: 50px !important;">View Site on Land Insight</th>
+	      					<th style="width: 50px !important;">View Title on Land Insight</th>
+	      					<th style="width: 60px !important;">Proposals Map</th>
+	      					<th style="width: 50px !important;">Delete</th>
+	      				</tr>
+	      			</thead>
+	      		</table>
+				<div class="table-responsive" id="dbTable" style="height: 89vh; width: 2517px !important;">
+	      		<table st-table="displayedCollection" st-safe-src="dbTableEvents" class="table table-striped table-bordered dbTbl" id="dbTbl">
+	      			<tbody>
+	      				<tr ng-repeat="dayEvent in displayedCollection | filter: {isStage2: 'Yes'}" ng-click="setActiveLine($index)" data-ng-class="{ success: dayEvent.selected == 'selected' }">
+	      					<td style="width: 40px !important; color: red;">
+	      						<i class="fa fa-pencil fa-lg" aria-hidden="true" ng-click="editPropertyByID(dayEvent)"></i>	      						
+	      					</td>
+	      					<td style="width: 40px !important; color: darkorange;">
+	      						<i class="fa fa-files-o fa-lg" aria-hidden="true" ng-click="duplicateRecord(dayEvent)"></i>
+	      					</td>
+	      					<td style="width: 50px !important;">{{ dayEvent.SiteLogNo }}</td>
+	      					<td style="width: 60px !important;">{{ dayEvent.dateFound | date : 'dd MMM yyyy' }}</td>
+	      					<td style="width: 150px !important;">{{ dayEvent.siteName }}</td>
+	      					<td style="width: 150px !important;">{{ dayEvent.siteAddress }}</td>
+	      					<td style="width: 100px !important;">{{ dayEvent.sitePostcode }}</td>
+							<td style="width: 100px !important;"></td>
+	      					<td style="width: 300px !important;">{{ dayEvent.siteNotes }}</td>
+	      					<td style="width: 80px !important;">
+	      						<a target="_blank" ng-href="files/title/{{ dayEvent.fileTitle }}" ng-show="dayEvent.fileTitle">{{ dayEvent.titleNumber }}</a>
+	      						<span ng-show="!dayEvent.fileTitle">{{ dayEvent.titleNumber }}</span>
+	      					</td>
+	      					<td style="width: 70px !important;">{{ dayEvent.propertyType }}</td>
+	      					<td style="width: 100px !important;">{{ dayEvent.owner_type }}</td>
+	      					<td style="width: 150px !important;">{{ dayEvent.companyName }}</td>
+	      					<td style="width: 150px !important;">{{ dayEvent.individualsNames }}</td>
+	      					<td style="width: 200px !important;">{{ dayEvent.owner_address }}</td>
+	      					<td style="width: 50px !important;">{{ dayEvent.titleArea }}</td>
+	      					<td style="width: 50px !important;">
+	      						<a target="_blank" ng-href="{{ dayEvent.landinsightSite }}" ng-show="dayEvent.landinsightSite">LINK</a>	      						
+	      					</td>
+	      					<td style="width: 50px !important;">
+	      						<a target="_blank" ng-href="{{ dayEvent.landinsightTitle }}" ng-show="dayEvent.landinsightTitle">LINK</a>
+	      					</td>
+	      					<td style="width: 60px !important;"></td>
+	      					<td style="width: 50px !important; color: red;">
+	      						<i class="fa fa-trash-o fa-lg" aria-hidden="true" ng-click="deleteProperty(dayEvent)"></i>
+	      					</td>
+	      				</tr>
+	      			</tbody>
+	      		</table>
+	      	</div>
+      	</div>
+      </div>
+	</script>
+
+	<!-- Charts View -->
+	<script type="text/ng-template" id="Charts.html">
+		<div class="container-fluid">
+			<div class="navbar navbar-inverse navbar-twitch" role="navigation">
+				<div class="container">
+					<div>
+						<ul class="nav navbar-nav">
+							<li>
+								<a href="#">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Calendar"> 
+										<i class="fa fa-calendar" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Calendar</span>
+								</a>
+							</li>
+							<li>
+								<a href="#database">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database"> 
+										<i class="fa fa-database" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Database</span>
+								</a>
+							</li>
+							<li>
+								<a href="#database2">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database"> 
+										<i class="fa fa-table" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Database Stage 2</span>
+								</a>
+							</li>
+							<li class="active">
+								<a href="#charts">
+									<span class="small-nav" data-toggle="tooltip" data-placement="right" title="Charts"> 
+										<i class="fa fa-line-chart" aria-hidden="true"></i>
+									</span>
+									<span class="full-nav">Charts</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-left: -30px;">
+				<div class="col-md-6" style="padding-right: 0px !important;">
+					<h3 class="text-center" style="margin-top: 0px !important;">Letters Chart</h3>
+	      		<canvas id="bar" class="chart chart-bar" chart-data="chartData" chart-labels="chartLabels" chart-series="chartSeries" chart-colors="chartColors">
+					</canvas>
+	      	</div>
+	      	<div class="col-md-6" style="padding-right: 0px !important;">
+	      		<h3 class="text-center" style="margin-top: 0px !important;">Date Logged Chart</h3>
+	      		<canvas id="bar" class="chart chart-bar" chart-data="chartLoggedData" chart-labels="chartLoggedLabels" chart-series="chartLoggedSeries">
+					</canvas>
+	      	</div>
+      	</div>
+      </div>
+	</script>
+</html>

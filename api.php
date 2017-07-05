@@ -476,65 +476,51 @@
 				$dateLetter5 = '';
 			}
 
-			$sql = "DELETE FROM $tableName 
-			        WHERE id = ".$params['id'];
-
-			$query = mysql_query($sql, $link) or die('Error');
-
-			$values = [];
-
 			if ($params['isStage2'] == 'Yes') {
 				$isStage2 = 1;
 			} else {
 				$isStage2 = 0;
 			}
 
-			foreach ($params["owners"] as $owner) {
-				
-				$values[] = "(".$params['siteLogNo'].",
-						    '".$dateFound."',
-						    '".str_replace("'", "''", $params['siteName'])."',
-						    '".str_replace("'", "''", $params['siteNotes'])."',
-						    '".str_replace("'", "''", $params['siteAddress'])."',
-						    '".str_replace("'", "''", $params['streetName'])."',
-						    '".str_replace("'", "''", $params['sitePostcode'])."',
-						    '".str_replace("'", "''", $params['titleNumber'])."',
-						    '".str_replace("'", "''", $params['propertyType'])."',
-						    '".str_replace("'", "''", $owner['type'])."',
-						    '".str_replace("'", "''", $owner['companyName'])."',
-						    '".str_replace("'", "''", $owner['individualsNames'])."',
-						    '".str_replace("'", "''", $owner['address'])."',
-						    '".str_replace("'", "''", $params['titleArea'])."',
-						    '".str_replace("'", "''", $params['landInsightSite'])."',
-						    '".str_replace("'", "''", $params['landInsightTitle'])."',
-						    '".str_replace("'", "''", $params['qualify'])."',
-						    '".$dateStage1."',
-						    '".$dateStage2."',
-						    '".str_replace("'", "''", $params['templateLetter1'])."',
-						    '".$dateLetter1."',
-						    '".$dateLetter2."',
-						    '".$dateLetter3."',
-						    '".$dateLetter4."',
-						    '".$dateLetter5."',
-						    ".$isStage2.",
-						    '".str_replace("'", "''", $params['stage1File'])."',
-						    '".str_replace("'", "''", $params['stage2File'])."',
-						    '".str_replace("'", "''", $params['otherFile'])."',
-						    '".str_replace("'", "''", $params['powerPointFile'])."',
-						    '".str_replace("'", "''", $params['titleFile'])."')";
-			}
-
-			$sql = "INSERT INTO $tableName 
-				    (SiteLogNo, dateFound, siteName, siteNotes, siteAddress, streetName, sitePostcode, titleNumber, propertyType, 
-				    ownerType, companyName, individualsNames, ownerAddress, 
-				    titleArea, landinsightSite, landinsightTitle, qualify, 
-				    dateStage1, dateStage2, templateLetter1, dateLetter1, dateLetter2, dateLetter3, dateLetter4, dateLetter5, isStage2,
-				    fileStage1, fileStage2, fileOther, filePowerPoint, fileTitle) VALUES " . implode(",", $values);
+			$sql = "UPDATE $tableName 
+					SET SiteLogNo = ".$params['siteLogNo'].",
+						dateFound = '".$dateFound."',
+						siteName = '".str_replace("'", "''", $params['siteName'])."',
+						siteNotes = '".str_replace("'", "''", $params['siteNotes'])."',
+						siteAddress = '".str_replace("'", "''", $params['siteAddress'])."',
+						streetName = '".str_replace("'", "''", $params['streetName'])."',
+						sitePostcode = '".str_replace("'", "''", $params['sitePostcode'])."',
+						titleNumber = '".str_replace("'", "''", $params['titleNumber'])."',
+						propertyType = '".str_replace("'", "''", $params['propertyType'])."',
+						ownerType = '".str_replace("'", "''", $params['owners']['type'])."',
+						companyName = '".str_replace("'", "''", $params['owners']['companyName'])."',
+						individualsNames = '".str_replace("'", "''", $params['owners']['individualsNames'])."',
+						ownerAddress = '".str_replace("'", "''", $params['owners']['address'])."',
+						titleArea = '".str_replace("'", "''", $params['titleArea'])."',
+						landinsightSite = '".str_replace("'", "''", $params['landinsightSite'])."',
+						landinsightTitle = '".str_replace("'", "''", $params['landinsightTitle'])."',
+						qualify = '".str_replace("'", "''", $params['qualify'])."',
+						dateStage1 = '".$dateStage1."',
+						dateStage2 = '".$dateStage2."',
+						templateLetter1 = '".str_replace("'", "''", $params['templateLetter1'])."',
+						dateLetter1 = '".$dateLetter1."',
+						dateLetter2 = '".$dateLetter2."',
+						dateLetter3 = '".$dateLetter3."',
+						dateLetter4 = '".$dateLetter4."',
+						dateLetter5 = '".$dateLetter5."',
+						isStage2 = '".$isStage2."',
+						disabled = '".$params['disabled']."',
+						fileStage1 = '".str_replace("'", "''", $params['stage1File'])."',
+						fileStage2 = '".str_replace("'", "''", $params['stage2File'])."',
+						fileOther = '".str_replace("'", "''", $params['otherFile'])."',
+						filePowerPoint = '".str_replace("'", "''", $params['powerPointFile'])."',
+						fileTitle = '".str_replace("'", "''", $params['titleFile'])."' 
+			        WHERE id = ".$params['id'];
 
 			$query = mysql_query($sql, $link) or die('Error');
 			
 			$out = [
-				'records_added' => count($params["owners"]),
+				'updated_id' => $params['id'],
 				'status' => 'success'
 			];
 			echo json_encode($out);	

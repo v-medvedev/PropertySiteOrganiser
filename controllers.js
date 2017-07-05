@@ -401,7 +401,7 @@ angular.module('app.controllers', [])
 			// success
 			angular.forEach(response.data, function(value, key) {
 				$scope.dbTableEvents.push({
-					id: value.id,
+					id: parseInt(value.id),
 					SiteLogNo: value.SiteLogNo,
 					dateFound: value.dateFound,
 					siteName: value.siteName,
@@ -1107,7 +1107,7 @@ angular.module('app.controllers', [])
 		}
 		$scope.displayedCollection[idx].selected = 'selected';
 		$scope.activeRowId = 'db-' + idx;
-		// console.log($scope.displayedCollection[idx]);
+		console.log($scope.displayedCollection[idx]);
 	};
 
 	$scope.exportSingleLetter = function(property, fileType) {
@@ -2330,8 +2330,8 @@ angular.module('app.controllers', [])
 				"propertyType": $scope.data.propertyType ? $scope.data.propertyType : '',
 				"owners": $scope.data.owners ? $scope.data.owners : '',
 				"titleArea": $scope.data.titleArea ? $scope.data.titleArea : '',
-				"landInsightSite": $scope.data.landInsightSite ? $scope.data.landInsightSite : '',
-				"landInsightTitle": $scope.data.landInsightTitle ? $scope.data.landInsightTitle : '',
+				"landinsightSite": $scope.data.landinsightSite ? $scope.data.landinsightSite : '',
+				"landinsightTitle": $scope.data.landinsightTitle ? $scope.data.landinsightTitle : '',
 				"qualify": $scope.data.qualify ? $scope.data.qualify : '',
 				"dateStage1": $scope.data.stages.stage1.scheduledDate ? $scope.data.stages.stage1.scheduledDate : '',
 				"dateStage2": $scope.data.stages.stage2.scheduledDate ? $scope.data.stages.stage2.scheduledDate : '',
@@ -2346,7 +2346,8 @@ angular.module('app.controllers', [])
 				"otherFile": otherFileName,
 				"powerPointFile": powerPointFileName,
 				"titleFile": titleFileName,
-				"isStage2": $scope.data.isStage2
+				"isStage2": $scope.data.isStage2,
+				"disabled": $scope.data.disabled
 			}
 		})
 		.then(function(response) {

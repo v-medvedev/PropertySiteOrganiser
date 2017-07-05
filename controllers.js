@@ -805,7 +805,7 @@ angular.module('app.controllers', [])
 				companyName: event.companyName,
 				individualsNames: event.individualsNames,
 				address: event.owner_address,
-			}],			
+			}],
 			titleArea: event.titleArea,
 			landinsightSite: event.landinsightSite,
 			landinsightTitle: event.landinsightTitle,
@@ -2157,7 +2157,7 @@ angular.module('app.controllers', [])
 	      	backdrop: 'static'
 	  	});
   		modalInstance.result.then(function(owner) {
-  			$scope.data.owners[$scope.activeOwner] = owner;
+  			$scope.data.owners = [owner];  			
   		}, function() {
   			$log.info('Modal dismissed at: ' + new Date());
   		});
@@ -2328,7 +2328,10 @@ angular.module('app.controllers', [])
 				"sitePostcode": $scope.data.sitePostcode ? $scope.data.sitePostcode : '',
 				"titleNumber": $scope.data.titleNumber ? $scope.data.titleNumber : '',
 				"propertyType": $scope.data.propertyType ? $scope.data.propertyType : '',
-				"owners": $scope.data.owners ? $scope.data.owners : '',
+				"owner_type": $scope.data.owners[0].type ? $scope.data.owners[0].type : '',
+				"owner_companyName": $scope.data.owners[0].companyName ? $scope.data.owners[0].companyName : '',
+				"owner_individualsNames": $scope.data.owners[0].individualsNames ? $scope.data.owners[0].individualsNames : '',
+				"owner_address": $scope.data.owners[0].address ? $scope.data.owners[0].address : '',
 				"titleArea": $scope.data.titleArea ? $scope.data.titleArea : '',
 				"landinsightSite": $scope.data.landinsightSite ? $scope.data.landinsightSite : '',
 				"landinsightTitle": $scope.data.landinsightTitle ? $scope.data.landinsightTitle : '',

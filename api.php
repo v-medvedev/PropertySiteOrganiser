@@ -422,11 +422,6 @@
 
 		} elseif ($CRUD == 'update_id') {
 
-			// No owners
-			if (count($params["owners"]) == 0) {
-				$params["owners"][] = [ "type" => '', "companyName" => '', "individualsNames" => '', "address" => '' ];
-			}
-
 			if ($params['dateFound'] != '') {
 				$dateFound = strtotime($params['dateFound']);
 				$dateFound = date('Y-m-d', $dateFound);
@@ -492,10 +487,10 @@
 						sitePostcode = '".str_replace("'", "''", $params['sitePostcode'])."',
 						titleNumber = '".str_replace("'", "''", $params['titleNumber'])."',
 						propertyType = '".str_replace("'", "''", $params['propertyType'])."',
-						ownerType = '".str_replace("'", "''", $params['owners']['type'])."',
-						companyName = '".str_replace("'", "''", $params['owners']['companyName'])."',
-						individualsNames = '".str_replace("'", "''", $params['owners']['individualsNames'])."',
-						ownerAddress = '".str_replace("'", "''", $params['owners']['address'])."',
+						ownerType = '".str_replace("'", "''", $params['owner_type'])."',
+						companyName = '".str_replace("'", "''", $params['owner_companyName'])."',
+						individualsNames = '".str_replace("'", "''", $params['owner_individualsNames'])."',
+						ownerAddress = '".str_replace("'", "''", $params['owner_address'])."',
 						titleArea = '".str_replace("'", "''", $params['titleArea'])."',
 						landinsightSite = '".str_replace("'", "''", $params['landinsightSite'])."',
 						landinsightTitle = '".str_replace("'", "''", $params['landinsightTitle'])."',

@@ -250,10 +250,11 @@
 			}
 
 			$values = [];
+			$ids = [];
 
 			foreach ($params["owners"] as $owner) {
 				
-				$values[] = "(".$params['siteLogNo'].",
+				$values = "(".$params['siteLogNo'].",
 						    '".$dateFound."',
 						    '".str_replace("'", "''", $params['siteName'])."',
 						    '".str_replace("'", "''", $params['siteNotes'])."',
@@ -284,19 +285,22 @@
 						    '".str_replace("'", "''", $params['otherFile'])."',
 						    '".str_replace("'", "''", $params['powerPointFile'])."',
 						    '".str_replace("'", "''", $params['titleFile'])."')";
-			}
 
-			$sql = "INSERT INTO $tableName 
-				    (SiteLogNo, dateFound, siteName, siteNotes, siteAddress, streetName, sitePostcode, titleNumber, propertyType, 
-				    ownerType, companyName, individualsNames, ownerAddress, 
-				    titleArea, landinsightSite, landinsightTitle, qualify, 
-				    dateStage1, dateStage2, templateLetter1, dateLetter1, dateLetter2, dateLetter3, dateLetter4, dateLetter5, isStage2,
-				    fileStage1, fileStage2, fileOther, filePowerPoint, fileTitle) VALUES " . implode(",", $values);
+				$sql = "INSERT INTO $tableName 
+					    (SiteLogNo, dateFound, siteName, siteNotes, siteAddress, streetName, sitePostcode, titleNumber, propertyType, 
+					    ownerType, companyName, individualsNames, ownerAddress, 
+					    titleArea, landinsightSite, landinsightTitle, qualify, 
+					    dateStage1, dateStage2, templateLetter1, dateLetter1, dateLetter2, dateLetter3, dateLetter4, dateLetter5, isStage2,
+					    fileStage1, fileStage2, fileOther, filePowerPoint, fileTitle) VALUES " . $values;
 
-			$query = mysql_query($sql, $link) or die('Error');
+				$query = mysql_query($sql, $link) or die('Error');
+
+				$ids[] = mysql_insert_id();
+
+			}			
 			
 			$out = [
-				'records_added' => count($params["owners"]),
+				'id' => implode(",", $ids),
 				'status' => 'success'
 			];
 			echo json_encode($out);

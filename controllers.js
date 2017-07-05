@@ -625,6 +625,25 @@ angular.module('app.controllers', [])
   		});
 	};
 
+	$scope.addPropertyDB = function() {
+		var modalInstance = $uibModal.open({
+			animation: true,
+	      	templateUrl: 'AddProperty_Modal.html',
+	      	controller: 'AddProperty_Ctrl',
+	      	backdrop: 'static',
+	      	size: 'lg',
+    		windowClass: 'my-modal'
+  		});
+  		modalInstance.result.then(function(data) {
+  			console.log(data);
+  			for (var i = 0; i < data.length; i++) {
+  				$scope.displayedCollection.unshift(data[i]);
+  			}  			
+  		}, function() {
+  			$log.info('Modal dismissed at: ' + new Date());
+  		});
+	};
+
 	$scope.deleteProperty = function(event) {
 		var modalInstance = $uibModal.open({
 			animation: true,
@@ -1420,7 +1439,7 @@ angular.module('app.controllers', [])
 	$scope.landInsightSite = '';
 	$scope.landInsightTitle = '';
 	$scope.qualifyOptions = ['Yes', 'No'];
-	$scope.qualify = 'Yes';
+	$scope.qualify = '';
 	$scope.dateStage1 = '';
 	$scope.openedDateStage1 = false;
 	$scope.dateStage2 = '';
@@ -1687,12 +1706,58 @@ angular.module('app.controllers', [])
 		})
 		.then(function(response) {
 			// success
-			console.log(response.data);
+			var ids = response.data.id.split(',');
+			var newProperties = [];
+			if ($scope.owners.length == 0) {
+				$scope.owners = [{
+					type: '',
+					companyName: '',
+					individualsNames: '',
+					address: ''
+				}];
+			}
+			for (var i = 0; i < ids.length; i++) {
+				newProperties.push({
+					id: parseInt(ids[i]),
+					SiteLogNo: $scope.siteLogNo ? $scope.siteLogNo : '',
+					dateFound: $scope.dateFound ? $scope.dateFound : '',
+					siteName: $scope.siteName ? $scope.siteName : '',
+					siteNotes: $scope.siteNotes ? $scope.siteNotes : '',
+					siteAddress: $scope.siteAddress ? $scope.siteAddress : '',
+					streetName: $scope.streetName ? $scope.streetName : '',
+					sitePostcode: $scope.sitePostcode ? $scope.sitePostcode : '',
+					titleNumber: $scope.titleNumber ? $scope.titleNumber : '',
+					propertyType: $scope.propertyType ? $scope.propertyType : '',
+					owner_type: $scope.owners[i].type,
+					companyName: $scope.owners[i].companyName,
+					individualsNames: $scope.owners[i].individualsNames,
+					owner_address: $scope.owners[i].address,
+					titleArea: $scope.titleArea,
+					landinsightSite: $scope.landInsightSite ? $scope.landInsightSite : '',
+					landinsightTitle: $scope.landInsightTitle ? $scope.landInsightTitle : '',
+					qualify: $scope.qualify,
+					Stage1: $scope.dateStage1 ? $scope.dateStage1 : '',
+					Stage2: $scope.dateStage2 ? $scope.dateStage2 : '',
+					isStage2: $scope.isStage2 == 1 ? 'Yes' : 'No',
+					templateLetter1: $scope.templateLetter1,
+					Letter1: $scope.dateLetter1 ? $scope.dateLetter1 : '',
+					Letter2: $scope.dateLetter2 ? $scope.dateLetter2 : '',
+					Letter3: $scope.dateLetter3 ? $scope.dateLetter3 : '',
+					Letter4: $scope.dateLetter4 ? $scope.dateLetter4 : '',
+					Letter5: $scope.dateLetter5 ? $scope.dateLetter5 : '',
+					fileStage1: stage1FileName,
+					fileStage2: stage2FileName,
+					fileOther: otherFileName,
+					filePowerPoint: powerPointFileName,
+					fileTitle: titleFileName,
+					disabled: 0
+				});
+			}			
+			$uibModalInstance.close(newProperties);
 		}, function(response) {
 			// failed
 			console.log(response.data);
 		});
-		$uibModalInstance.close();
 	};
 	$scope.Close = function() {
 		$uibModalInstance.dismiss();

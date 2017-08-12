@@ -45,6 +45,7 @@
 							}
 							// 1st Record
 							$records[$siteName][ strtolower(str_replace('date', '', $field)) ] = [
+								'id' => intval($row['id']),
 								'SiteLogNo' => intval($row['SiteLogNo']),
 								'dateFound' => $row['dateFound'],
 								'siteName' => $row['siteName'],
@@ -189,6 +190,24 @@
 			
 			$out = [
 				'records_added' => 1,
+				'status' => 'success'
+			];
+			echo json_encode($out);
+
+		} elseif ($CRUD == 'rescheduleLetters') {
+
+			$dateLetter = strtotime($params['dateLetter']);
+			$dateLetter = date('Y-m-d', $dateLetter);
+
+			$field = "date" . $params["typeLetter"];
+
+			$ids = $params["ids"];
+
+			$sql = "UPDATE $tableName SET " . $field . " = '" . $dateLetter . "' WHERE id IN (" . implode(",", $ids) . ")";
+			$query = mysql_query($sql, $link) or die('Error');
+
+			$out = [
+				'sql' => $sql,
 				'status' => 'success'
 			];
 			echo json_encode($out);

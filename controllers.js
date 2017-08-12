@@ -312,6 +312,7 @@ angular.module('app.controllers', [])
 				var propertyObj = propValue;
 				angular.forEach(propertyObj, function(value, key) {
 					$scope.events.push({
+						id: parseInt(value.id),
 						SiteLogNo: value.SiteLogNo,
 						dateFound: value.dateFound,
 						siteName: value.siteName,
@@ -970,6 +971,66 @@ angular.module('app.controllers', [])
   		});
 	};
 
+	$scope.rescheduleAllLetters = function(fileType) {
+		var letterDate = $scope.currentDate;
+		var dayEvents = [];
+		switch (fileType) {
+    		case 'Letter1': 
+    			dayEvents = $scope.dayEvents_Letter1;
+    			break;
+    		case 'Letter2': 
+    			dayEvents = $scope.dayEvents_Letter2;
+    			break;
+    		case 'Letter3': 
+    			dayEvents = $scope.dayEvents_Letter3;
+    			break;
+    		case 'Letter4': 
+    			dayEvents = $scope.dayEvents_Letter4;
+    			break;
+    		case 'Letter5': 
+    			dayEvents = $scope.dayEvents_Letter5;
+    			break;
+    	}
+    	var scope = $rootScope.$new();
+	  	scope.params = {
+	  		letterDate: letterDate	  		
+	  	};
+	  	var modalInstance = $uibModal.open({
+	  		scope: scope,
+	  		animation: true,
+	      	templateUrl: 'RescheduleLetters_Modal.html',
+	      	controller: 'RescheduleLetters_Ctrl',
+	      	backdrop: 'static'
+	  	});
+  		modalInstance.result.then(function(data) {
+  			var ids = [];
+	  		for (var i=0; i<dayEvents.length; i++) {
+	  			ids.push(dayEvents[i].id);
+	  		}
+	  		// Save to DB
+	  		$http({
+				url: './api.php',
+				method: "POST",
+				data: {
+					"operation": "rescheduleLetters",
+					"ids": ids,
+					"typeLetter": fileType,
+					"dateLetter": data
+				}
+			})
+			.then(function(response) {
+				// success
+				$window.location.reload();
+			}, function(response) {
+				// failed
+				console.log(response.data);
+			});
+
+  		}, function () {
+      		$log.info('Modal dismissed at: ' + new Date());
+  		});
+	};
+
 	$scope.exportAllLetters = function(fileType) {
 		var templateURL = '';
 		var letterIndex = '';
@@ -1040,10 +1101,13 @@ angular.module('app.controllers', [])
 				            individualsNames: individualsNames.toUpperCase(),
 				            owner_address: owner_address,
 				            site_address: site_address,
-				            letter_date: $scope.formatDate(letter_date),
-				            letter1_date: $scope.formatDate(letter1_date),
-				            title: $scope.toProperCase(title)
+				            letter_date: letter_date,
+				            letter1_date: letter1_date,
+				            title: $scope.toProperCase(title),
+				            CC: ''
 				        };
+
+				        console.log(word_data);
 
 				        if (record.companyName == undefined) {
 				        	record.companyName = '';
@@ -1355,6 +1419,28 @@ angular.module('app.controllers', [])
 	$scope.reloadToDos();
 	
 	// $scope.eventSources = [$scope.events];
+
+})
+
+.controller('RescheduleLetters_Ctrl', function($rootScope, $scope, $uibModal, $uibModalInstance, $timeout) {
+
+	$scope.data = $scope.params;
+	$scope.scheduledDate = $scope.data.letterDate;
+	$scope.openedDateLetter = false;
+
+	$scope.openDatePicker = function() {
+        $timeout(function() {
+            $scope.openedDateLetter = true;
+        });
+    };
+
+    $scope.Confirm = function() {
+    	$uibModalInstance.close($scope.scheduledDate);
+    };
+
+    $scope.Cancel = function() {
+    	$uibModalInstance.dismiss();
+    };
 
 })
 

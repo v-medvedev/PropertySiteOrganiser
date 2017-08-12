@@ -118,7 +118,7 @@
 						  		</div>
 						  		<div class="panel-body">
 						  			<ul class="list-group">
-		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Stage1">{{ dayEvent.siteName | limitTo : 55 }}
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Stage1">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}
 		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
 		  									<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
 		  								</li>
@@ -129,10 +129,11 @@
 						  		<div class="panel-heading">
 						  			Letter 1
 						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter1')"></i>
+									  <i class="fa fa-clock-o pull-right" aria-hidden="true" ng-click="rescheduleAllLetters('Letter1')" style="margin-right: 8px;"></i>
 						  		</div>
 						  		<div class="panel-body">
 						  			<ul class="list-group">
-		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter1">{{ dayEvent.siteName | limitTo : 55 }}
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter1">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}
 		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
 		  									<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
 		  									<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter1')"></i>
@@ -144,10 +145,11 @@
 						  		<div class="panel-heading">
 						  			Letter 2
 						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter2')"></i>
+									<i class="fa fa-clock-o pull-right" aria-hidden="true" ng-click="rescheduleAllLetters('Letter2')" style="margin-right: 8px;"></i>
 						  		</div>
 						  		<div class="panel-body">
 						  			<ul class="list-group">
-		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter2">{{ dayEvent.siteName | limitTo : 55 }}
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter2">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}
 		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
 			  								<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
 			  								<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter2')"></i>
@@ -159,10 +161,11 @@
 						  		<div class="panel-heading">
 						  			Letter 3
 						  			<i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter3')"></i>
+									<i class="fa fa-clock-o pull-right" aria-hidden="true" ng-click="rescheduleAllLetters('Letter3')" style="margin-right: 8px;"></i>
 						  		</div>
 						  		<div class="panel-body">
 						  			<ul class="list-group">
-		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter3">{{ dayEvent.siteName | limitTo : 55 }}
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter3">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}
 		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
 			  								<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
 			  								<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter3')"></i>
@@ -177,7 +180,7 @@
 						  		</div>
 						  		<div class="panel-body">
 						  			<ul class="list-group">
-		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter4">{{ dayEvent.siteName | limitTo : 55 }}
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter4">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}
 		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
 			  								<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
 			  								<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter4')"></i>
@@ -192,7 +195,7 @@
 						  		</div>
 						  		<div class="panel-body">
 						  			<ul class="list-group">
-		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter5">{{ dayEvent.siteName | limitTo : 55 }}
+		  								<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter5">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 45 }}
 		  									<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
 			  								<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
 			  								<i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter5')"></i>
@@ -207,7 +210,7 @@
 						  		</div>
 						  		<div class="panel-body">
 						  			<ul class="list-group">
-						  				<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Stage2">{{ dayEvent.siteName | limitTo : 45 }}
+						  				<li class="list-group-item" ng-repeat="dayEvent in dayEvents_Stage2">{{ dayEvent.siteName | limitTo : 50 }}
 						  					<i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;"></i>
 		  									<span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)"></span>
 		  								</li>
@@ -1505,6 +1508,34 @@
  		</div>
 	</script>
 
+	<!-- Reschedule Letters -->
+	<script type="text/ng-template" id="RescheduleLetters_Modal.html">
+		<div class="modal-header" style="background: #eee;">
+     		<h1>Reschedule All Letters</h1>
+ 		</div>
+ 		<div class="modal-body">
+ 			<form class="form-horizontal" name="userForm" style="padding-left: 10px; padding-right: 10px;" novalidate>
+		  		<div class="form-group" style="margin-bottom: 5px !important;">
+		  			<label class="col-sm-2 control-label">New Date:</label>
+		  			<div class="col-sm-4">
+		  				<div class="input-group">
+		            		<input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="scheduledDate" name="dateLetter" is-open="openedDateLetter" close-text="Close" />
+			               	<span class="input-group-btn">
+			                  	<button style="height:34px;" class="btn btn-default" ng-click="openDatePicker()">
+			                    	<i class="glyphicon glyphicon-calendar"></i>
+			                  	</button>
+			               	</span>
+			            </div>
+		            </div>
+	            </div>
+	     	</form>  
+ 		</div>
+ 		<div class="modal-footer">
+     		<button class="btn btn-primary" ng-click="Confirm()">Confirm</button>
+     		<button class="btn btn-danger" ng-click="Cancel()">Cancel</button>
+ 		</div>
+	</script>
+
 	<!-- Database View -->
 	<script type="text/ng-template" id="Database.html">
 		<div class="container-fluid">
@@ -1597,12 +1628,44 @@
 	      					<th style="width: 50px !important;">Delete</th>
 	      					<th style="width: 80px !important;">Disable</th>
 	      				</tr>
+						<tr>
+							<th></th>
+	      					<th></th>
+	      					<th style="padding: 0;">
+								<input type="search" ng-model="filterSiteLogNo" class="st-small form-control text-center" style="height: 10px; width: 23px; font-size: 10px;" />
+							</th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+	      					<th></th>
+						</tr>
 	      			</thead>
 	      		</table>
 				<div class="table-responsive" id="dbTable" style="height: 89vh; width: 2517px !important;">
 	      		<table st-table="displayedCollection" class="table table-striped table-bordered dbTbl" id="dbTbl">
 	      			<tbody>
-	      				<tr id="db-{{ $index }}" ng-repeat="dayEvent in displayedCollection" ng-click="setActiveLine($index)" data-ng-class="{ success: dayEvent.selected == 'selected' }">
+	      				<tr id="db-{{ $index }}" ng-repeat="dayEvent in displayedCollection | filter: {	SiteLogNo: filterSiteLogNo } : false" ng-click="setActiveLine($index)" data-ng-class="{ success: dayEvent.selected == 'selected' }">
 	      					<td style="width: 40px !important; color: red;">
 	      						<i class="fa fa-pencil fa-lg" aria-hidden="true" ng-click="editPropertyByID(dayEvent)"></i>	      						
 	      					</td>
@@ -1717,7 +1780,6 @@
 				</div>
 			</div>
 			<div class="row" style="margin-left: -30px; margin-top: -15px;">
-				<input st-search="" class="form-control" placeholder="global search" type="text" />
 				<table st-table="displayedCollection" st-safe-src="dbTableEvents" class="table table-striped table-bordered dbTbl" style="margin-bottom: 0px;">
 	      			<thead>
 	      				<tr class="text-center" >

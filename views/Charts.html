@@ -1,0 +1,54 @@
+<div class="container-fluid">
+    <div class="navbar navbar-inverse navbar-twitch" role="navigation">
+        <div class="container">
+            <div>
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="#">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Calendar">
+                                <i class="fa fa-calendar" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Calendar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#database">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database">
+                                <i class="fa fa-database" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Database</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#database2">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database">
+                                <i class="fa fa-table" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Database Stage 2</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="#charts">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Charts">
+                                <i class="fa fa-line-chart" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Charts</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="margin-left: -30px;">
+        <div class="col-md-6" style="padding-right: 0px !important;">
+            <h3 class="text-center" style="margin-top: 0px !important;">Letters Chart</h3>
+            <canvas id="bar" class="chart chart-bar" chart-data="chartData" chart-labels="chartLabels" chart-series="chartSeries" chart-colors="chartColors">
+            </canvas>
+        </div>
+        <div class="col-md-6" style="padding-right: 0px !important;">
+            <h3 class="text-center" style="margin-top: 0px !important;">Date Logged Chart</h3>
+            <canvas id="bar" class="chart chart-bar" chart-data="chartLoggedData" chart-labels="chartLoggedLabels" chart-series="chartLoggedSeries">
+            </canvas>
+        </div>
+    </div>
+</div>

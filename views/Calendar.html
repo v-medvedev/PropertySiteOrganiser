@@ -1,0 +1,239 @@
+<div class="container-fluid">
+    <div class="navbar navbar-inverse navbar-twitch" role="navigation">
+        <div class="container">
+            <div>
+                <ul class="nav navbar-nav">
+                    <li class="active">
+                        <a href="#">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Calendar">
+                                <i class="fa fa-calendar" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Calendar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#database">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database">
+                                <i class="fa fa-database" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Database Stage 1</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#database2">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database">
+                                <i class="fa fa-table" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Database Stage 2</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#charts">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Charts">
+                                <i class="fa fa-line-chart" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Charts</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="margin-left: -30px;"></div>
+    <div class="col-md-4" style="padding-right: 0px !important;">
+        <div class="btn-group btn-group-justified" role="group" aria-label="...">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-primary" ng-click="addProperty()">
+                    <i class="fa fa-street-view pull-left" aria-hidden="true"></i>
+                    Add Property
+                </button>
+            </div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-primary" ng-click="importTemplates()">
+                    <i class="fa fa-upload pull-left" aria-hidden="true"></i>
+                    Import Templates
+                </button>
+            </div>
+        </div>
+        <div class="panel panel-primary" style="margin-top: 10px;">
+            <div class="panel-heading">
+                Scheduled Events - {{ currentDate | date : 'dd MMM yyyy' }}
+            </div>
+            <div class="panel-body">
+                <div ng-show="dayEvents_Stage1.length > 0" class="panel panel-default" style="margin-top: 10px;">
+                    <div class="panel-heading" style="background: #e76208 !important; color: #fff;">
+                        Stage 1
+                        <i class="fa fa-floppy-o pull-right" aria-hidden="true"></i>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item" ng-repeat="dayEvent in dayEvents_Stage1">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}
+                                <i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;" title="Disable Property"></i>
+                                <span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)" title="Edit Property"></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div ng-show="dayEvents_Letter1.length > 0" class="panel panel-primary" style="margin-top: 10px;">
+                    <div class="panel-heading">
+                        Letter 1
+                        <i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter1')" title="Export All Letter 1"></i>
+                        <i class="fa fa-clock-o pull-right" aria-hidden="true" ng-click="rescheduleAllLetters('Letter1')" style="margin-right: 8px;" title="Reschedule All Letter 1"></i>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter1">
+                                <span style="cursor: pointer;" ng-click="showInfo(dayEvent, 'Letter1')">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}</span>
+                                <i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;" title="Disable Property"></i>
+                                <span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)" title="Edit Property"></span>
+                                <i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter1')" title="Generate Letter1"></i>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div ng-show="dayEvents_Letter2.length > 0" class="panel panel-success" style="margin-top: 10px;">
+                    <div class="panel-heading">
+                        Letter 2
+                        <i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter2')" title="Export All Letter 2"></i>
+                        <i class="fa fa-clock-o pull-right" aria-hidden="true" ng-click="rescheduleAllLetters('Letter2')" style="margin-right: 8px;" title="Reschedule All Letter 2"></i>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter2">
+                                <span style="cursor: pointer;" ng-click="showInfo(dayEvent, 'Letter2')">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}</span>
+                                <i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;" title="Disable Property"></i>
+                                <span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)" title="Edit Property"></span>
+                                <i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter2')" title="Generate Letter2"></i>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div ng-show="dayEvents_Letter3.length > 0" class="panel panel-info" style="margin-top: 10px;">
+                    <div class="panel-heading">
+                        Letter 3
+                        <i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter3')" title="Export All Letter 3"></i>
+                        <i class="fa fa-clock-o pull-right" aria-hidden="true" ng-click="rescheduleAllLetters('Letter3')" style="margin-right: 8px;" title="Reschedule All Letter 3"></i>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter3">
+                                <span style="cursor: pointer;" ng-click="showInfo(dayEvent, 'Letter3')">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}</span>
+                                <i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;" title="Disable Property"></i>
+                                <span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)" title="Edit Property"></span>
+                                <i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter3')" title="Generate Letter3"></i>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div ng-show="dayEvents_Letter4.length > 0" class="panel panel-warning" style="margin-top: 10px;">
+                    <div class="panel-heading">
+                        Letter 4
+                        <i class="fa fa-floppy-o pull-right" aria-hidden="true" ng-click="exportAllLetters('Letter4')" title="Export All Letter 4"></i>
+                        <i class="fa fa-clock-o pull-right" aria-hidden="true" ng-click="rescheduleAllLetters('Letter4')" style="margin-right: 8px;" title="Reschedule All Letter 4"></i>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter4">
+                                <span style="cursor: pointer;" ng-click="showInfo(dayEvent, 'Letter4')">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}</span>
+                                <i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;" title="Disable Property"></i>
+                                <span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)" title="Edit Property"></span>
+                                <i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter4')" title="Generate Letter4"></i>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div ng-show="dayEvents_Letter5.length > 0" class="panel panel-danger" style="margin-top: 10px;">
+                    <div class="panel-heading">
+                        Letter 5
+                        <i class="fa fa-floppy-o pull-right" aria-hidden="true"></i>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item" ng-repeat="dayEvent in dayEvents_Letter5">
+                                <span style="cursor: pointer;" ng-click="showInfo(dayEvent, 'Letter5')">{{ dayEvent.SiteLogNo + ' - ' + dayEvent.siteName | limitTo : 50 }}</span>
+                                <i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;" title="Disable Property"></i>
+                                <span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)" title="Edit Property"></span>
+                                <i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(dayEvent, 'Letter5')" title="Generate Letter5"></i>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div ng-show="dayEvents_Stage2.length > 0" class="panel panel-default" style="margin-top: 10px;">
+                    <div class="panel-heading" style="background: #dc08e7 !important; color: #fff;">
+                        Stage 2
+                        <i class="fa fa-floppy-o pull-right" aria-hidden="true"></i>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            <li class="list-group-item" ng-repeat="dayEvent in dayEvents_Stage2">{{ dayEvent.siteName | limitTo : 50 }}
+                                <i class="fa fa-eye pull-right" aria-hidden="true" ng-click="disableProperty(dayEvent)" style="margin-left: 8px;" title="Disable Property"></i>
+                                <span class="glyphicon glyphicon-glyphicon glyphicon-glyphicon glyphicon-pencil pull-right" ng-click="editProperty(dayEvent)" title="Edit Property"></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-primary" style="margin-top: 10px;">
+            <div class="panel-heading">
+                To Do List
+                <i class="fa fa-plus pull-right" aria-hidden="true" style="margin-top: 3px;" ng-click="addNewToDo()"></i>
+            </div>
+            <div class="panel-body">
+                <md-content>
+                    <md-tabs md-border-bottom>
+                        <md-tab label="all">
+                            <md-content class="md-padding">
+                                <ul class="list-group">
+                                    <li class="list-group-item" ng-repeat="todo in todos">
+                                        <div class="checkbox" style="display: inline-block !important; width: 95%;">
+                                            <label style="width: 100%;" ng-class="todo.label_style">
+                                                <input type="checkbox" ng-checked="todo.completed == 1" ng-click="updateToDo(todo)">{{ todo.title }}: {{ todo.description }}
+                                                <span class="pull-right">{{ todo.actual_date | date : 'dd MMM yyyy' }}</span>
+                                            </label>
+                                        </div>
+                                        <i class="fa fa-trash-o fa-lg pull-right" aria-hidden="true" style="margin-top: 14px; color: red;" ng-click="deleteToDo(todo)"></i>
+                                    </li>
+                                </ul>
+                            </md-content>
+                        </md-tab>
+                        <md-tab label="active">
+                            <md-content class="md-padding">
+                                <ul class="list-group">
+                                    <li class="list-group-item" ng-repeat="todo in todos | filter: {completed: '0'} | filter: filterItemsByDate">
+                                        <div class="checkbox" style="display: inline-block !important; width: 95%;">
+                                            <label style="width: 100%;">
+                                                <input type="checkbox" ng-click="updateToDo(todo)">{{ todo.title }}: {{ todo.description }}
+                                                <span class="pull-right">{{ todo.actual_date | date : 'dd MMM yyyy' }}</span>
+                                            </label>
+                                        </div>
+                                        <i class="fa fa-trash-o fa-lg pull-right" aria-hidden="true" style="margin-top: 14px; color: red;" ng-click="deleteToDo(todo)"></i>
+                                    </li>
+                                </ul>
+                            </md-content>
+                        </md-tab>
+                        <md-tab label="completed">
+                            <md-content class="md-padding">
+                                <ul class="list-group">
+                                    <li class="list-group-item" ng-repeat="todo in todos | filter: {completed: '1'}">
+                                        <div class="checkbox" style="display: inline-block !important; width: 95%;">
+                                            <label style="width: 100%;" ng-class="todo.label_style">
+                                                <input type="checkbox" ng-checked="todo.completed == 1" ng-click="updateToDo(todo)">{{ todo.title }}: {{ todo.description }}
+                                                <span class="pull-right">{{ todo.actual_date | date : 'dd MMM yyyy' }}</span>
+                                            </label>
+                                        </div>
+                                        <i class="fa fa-trash-o fa-lg pull-right" aria-hidden="true" style="margin-top: 14px; color: red;" ng-click="deleteToDo(todo)"></i>
+                                    </li>
+                                </ul>
+                            </md-content>
+                        </md-tab>
+                    </md-tabs>
+                </md-content>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="calendar" ng-model="eventSources" calendar="myCalendar" ui-calendar="uiConfig.calendar" data-tap-disabled="true">
+        </div>
+    </div>
+</div>

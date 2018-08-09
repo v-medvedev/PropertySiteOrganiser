@@ -1,0 +1,17 @@
+<div class="modal-header" style="background: #eee;">
+    <h1>Select From List</h1>
+</div>
+<div class="modal-body">
+    <form class="form-horizontal" style="padding-left: 10px; padding-right: 10px;">
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-3 control-label">{{ data.propertyName }}</label>
+            <div class="col-sm-9">
+                <select class="form-control" ng-model="propertyValue" ng-init="propertyValue" ng-options="propertyValue for propertyValue in data.propertyValues" required></select>
+            </div>
+        </div>
+    </form>    
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="Confirm()">Confirm</button>
+    <button class="btn btn-danger" ng-click="Cancel()">Cancel</button>
+</div>

@@ -36,64 +36,51 @@
 				foreach ($fields as $field) {
 
 					if ($row[$field] != '0000-00-00') {
-						$siteName = $row['siteName'];
-						if ( !isset($records[$siteName][ strtolower(str_replace('date', '', $field)) ]) ) {
-							if ($row['isStage2'] == 1) {
-								$isStage2 = 'Yes';
-							} else {
-								$isStage2 = 'No';
-							}
-							// 1st Record
-							$records[$siteName][ strtolower(str_replace('date', '', $field)) ] = [
-								'id' => intval($row['id']),
-								'SiteLogNo' => intval($row['SiteLogNo']),
-								'dateFound' => $row['dateFound'],
-								'siteName' => $row['siteName'],
-								'siteNotes' => $row['siteNotes'],
-								'siteAddress' => $row['siteAddress'],
-								'streetName' => $row['streetName'],
-								'sitePostcode' => $row['sitePostcode'],
-								'titleNumber' => $row['titleNumber'],
-								'propertyType' => $row['propertyType'],
-								'owners' => [
-									[
-										'type' => $row['ownerType'],
-										'companyName' => $row['companyName'],
-										'individualsNames' => $row['individualsNames'],
-										'address' => $row['ownerAddress']
-									]									
-								],
-								'titleArea' => $row['titleArea'],
-								'landinsightSite' => $row['landinsightSite'],
-								'landinsightTitle' => $row['landinsightTitle'],
-								'qualify' => $row['qualify'],
-								'Stage1' => $row['dateStage1'],
-								'Stage2' => $row['dateStage2'],
-								'Letter1' => $row['dateLetter1'],
-								'Letter2' => $row['dateLetter2'],
-								'Letter3' => $row['dateLetter3'],
-								'Letter4' => $row['dateLetter4'],
-								'Letter5' => $row['dateLetter5'],
-								'EventDate' => $row[$field],
-								'templateLetter1' => $row['templateLetter1'],
-								'fileStage1' => $row['fileStage1'],
-								'fileStage2' => $row['fileStage2'],
-								'fileOther' => $row['fileOther'],
-								'filePowerPoint' => $row['filePowerPoint'],
-								'fileTitle' => $row['fileTitle'],
-								'isStage2' => $isStage2,
-								'className' => strtolower(str_replace('date', '', $field)),
-								'start' => strtotime($row[$field])
-							];
+						
+						if ($row['isStage2'] == 1) {
+							$isStage2 = 'Yes';
 						} else {
-							// New Owner
-							$records[$siteName][ strtolower(str_replace('date', '', $field))  ]["owners"][] = [
-								'type' => $row['ownerType'],
-								'companyName' => $row['companyName'],
-								'individualsNames' => $row['individualsNames'],
-								'address' => $row['ownerAddress']
-							];
+							$isStage2 = 'No';
 						}
+						
+						$records[] = [
+							'id' => intval($row['id']),
+							'SiteLogNo' => intval($row['SiteLogNo']),
+							'dateFound' => $row['dateFound'],
+							'siteName' => $row['siteName'],
+							'siteNotes' => $row['siteNotes'],
+							'siteAddress' => $row['siteAddress'],
+							'streetName' => $row['streetName'],
+							'sitePostcode' => $row['sitePostcode'],
+							'titleNumber' => $row['titleNumber'],
+							'propertyType' => $row['propertyType'],
+							'ownerType' => $row['ownerType'],
+							'companyName' => $row['companyName'],
+							'individualsNames' => $row['individualsNames'],
+							'ownerAddress' => $row['ownerAddress'],
+							'titleArea' => $row['titleArea'],
+							'landinsightSite' => $row['landinsightSite'],
+							'landinsightTitle' => $row['landinsightTitle'],
+							'qualify' => $row['qualify'],
+							'Stage1' => $row['dateStage1'],
+							'Stage2' => $row['dateStage2'],
+							'templateLetter1' => $row['templateLetter1'],
+							'Letter1' => $row['dateLetter1'],
+							'Letter2' => $row['dateLetter2'],
+							'Letter3' => $row['dateLetter3'],
+							'Letter4' => $row['dateLetter4'],
+							'Letter5' => $row['dateLetter5'],
+							'fileStage1' => $row['fileStage1'],
+							'fileStage2' => $row['fileStage2'],
+							'fileOther' => $row['fileOther'],
+							'filePowerPoint' => $row['filePowerPoint'],
+							'fileTitle' => $row['fileTitle'],
+							'disabled' => $row['disabled'],
+							'isStage2' => $isStage2,
+							'EventDate' => $row[$field],
+							'className' => strtolower(str_replace('date', '', $field)),
+							'start' => strtotime($row[$field])								
+						];
 					}
 				}
 			}
@@ -124,10 +111,10 @@
 					'sitePostcode' => $row['sitePostcode'],
 					'titleNumber' => $row['titleNumber'],
 					'propertyType' => $row['propertyType'],
-					'owner_type' => $row['ownerType'],
+					'ownerType' => $row['ownerType'],
 					'companyName' => $row['companyName'],
 					'individualsNames' => $row['individualsNames'],
-					'owner_address' => $row['ownerAddress'],
+					'ownerAddress' => $row['ownerAddress'],
 					'titleArea' => $row['titleArea'],
 					'landinsightSite' => $row['landinsightSite'],
 					'landinsightTitle' => $row['landinsightTitle'],
@@ -173,10 +160,10 @@
 
 		} elseif ($CRUD == 'saveToDo') {
 
-			$actual_date = strtotime($params['actual_date']);
+			$actual_date = strtotime($params['date_actual']);
 			$actual_date = date('Y-m-d', $actual_date);
 
-			$reminder_date = strtotime($params['reminder_date']);
+			$reminder_date = strtotime($params['date_redimnder']);
 			$reminder_date = date('Y-m-d', $reminder_date);
 
 			$sql = "INSERT INTO todos 
@@ -194,16 +181,65 @@
 			];
 			echo json_encode($out);
 
-		} elseif ($CRUD == 'rescheduleLetters') {
+		} elseif ($CRUD == 'deleteToDo') {
+			
+			$sql = "DELETE FROM todos WHERE id = " . $params['id'];
 
-			$dateLetter = strtotime($params['dateLetter']);
-			$dateLetter = date('Y-m-d', $dateLetter);
+			$query = mysql_query($sql, $link) or die('Error: ' . $sql);
+			
+			$out = [
+				'records_removed' => 1,
+				'status' => 'success'
+			];
+			echo json_encode($out);
+		
+		} elseif ($CRUD == 'updateToDo') {
+			
+			$sql = "UPDATE todos SET completed = " . $params['completed'] . " WHERE id = " . $params['id'];
+
+			$query = mysql_query($sql, $link) or die('Error');
+			
+			$out = [
+				'records_updated' => 1,
+				'status' => 'success'
+			];
+			echo json_encode($out);
+
+		} elseif ($CRUD == 'rescheduleLetters') {
 
 			$field = "date" . $params["typeLetter"];
 
+			$dateLetter = strtotime($params['dateLetter']);
+			$strDateLetter = date('Y-m-d', $dateLetter);
+
+			$originalDate = strtotime($params['originalDate']);
+			$strOriginalDate = date('Y-m-d', $originalDate);
+
 			$ids = $params["ids"];
 
-			$sql = "UPDATE $tableName SET " . $field . " = '" . $dateLetter . "' WHERE id IN (" . implode(",", $ids) . ")";
+			if ($field == 'dateLetter1') {
+
+				$strDateLetter2 = date('Y-m-d', strtotime('+8 weeks', $dateLetter));
+				$strDateLetter3 = date('Y-m-d', strtotime('+16 weeks', $dateLetter));
+
+				$sql = "UPDATE $tableName SET dateLetter1 = '" . $strDateLetter . "', dateLetter2 = '" . $strDateLetter2 . "', dateLetter3 = '" . $strDateLetter3 . "' WHERE dateLetter1 = '" . $strOriginalDate . "' AND SiteLogNo IN (" . implode(",", $ids) . ")";
+				
+			} elseif ($field == 'dateLetter2') {
+
+				$strDateLetter3 = date('Y-m-d', strtotime('+8 weeks', $dateLetter));
+
+				$sql = "UPDATE $tableName SET dateLetter2 = '" . $strDateLetter . "', dateLetter3 = '" . $strDateLetter3 . "' WHERE dateLetter2 = '" . $strOriginalDate . "' AND SiteLogNo IN (" . implode(",", $ids) . ")";				
+
+			} elseif ($field == 'dateLetter3') {
+
+				$sql = "UPDATE $tableName SET dateLetter3 = '" . $strDateLetter . "' WHERE dateLetter3 = '" . $strOriginalDate . "' AND SiteLogNo IN (" . implode(",", $ids) . ")";
+				
+			} elseif ($field == 'dateLetter4') {
+
+				$sql = "UPDATE $tableName SET dateLetter4 = '" . $strDateLetter . "' WHERE dateLetter4 = '" . $strOriginalDate . "' AND SiteLogNo IN (" . implode(",", $ids) . ")";
+				
+			}
+
 			$query = mysql_query($sql, $link) or die('Error');
 
 			$out = [
@@ -216,8 +252,35 @@
 
 			// No owners
 			if (count($params["owners"]) == 0) {				
-				$params["owners"][] = [ "type" => '', "companyName" => '', "individualsNames" => '', "address" => '' ];
+				$params["owners"][] = [
+					"siteNotes" => "",
+					"siteAddress" => "",
+					"sitePostcode" => "",
+					"titleNumber" => "",
+					"streetName" => "",
+					"propertyType" => "Freehold",
+					"ownerType" => "",
+					"companyName" => "",
+					"individualsNames" => "",
+					"ownerAddress" => "",
+					"titleArea" => "",
+					"landinsightSite" => "",
+					"landinsightTitle" => "",
+					"qualify" => "",
+					"templateLetter1" => "Land Agent Approach",
+					"dateLetter1" => "",
+					"dateLetter2" => "",
+					"dateLetter3" => "",
+					"dateLetter4" => "",
+					"dateLetter5" => "",
+					"dateStage1" => "",
+					"dateStage2" => "",
+					"isStage2" => 0
+				];
 			}
+
+			$values = [];
+			$ids = [];
 
 			if ($params['dateFound'] != '') {
 				$dateFound = strtotime($params['dateFound']);
@@ -225,80 +288,88 @@
 			} else {
 				$dateFound = '';
 			}
-			if ($params['dateStage1'] != '') {
-				$dateStage1 = strtotime($params['dateStage1']);
-				$dateStage1 = date('Y-m-d', $dateStage1);
-			} else {
-				$dateStage1 = '';
-			}
-			if ($params['dateStage2'] != '') {
-				$dateStage2 = strtotime($params['dateStage2']);
-				$dateStage2 = date('Y-m-d', $dateStage2);
-			} else {
-				$dateStage2 = '';
-			}
-			if ($params['dateLetter1'] != '') {
-				$dateLetter1 = strtotime($params['dateLetter1']);
-				$dateLetter1 = date('Y-m-d', $dateLetter1);
-			} else {
-				$dateLetter1 = '';
-			}
-			if ($params['dateLetter2'] != '') {
-				$dateLetter2 = strtotime($params['dateLetter2']);
-				$dateLetter2 = date('Y-m-d', $dateLetter2);
-			} else {
-				$dateLetter2 = '';
-			}
-			if ($params['dateLetter3'] != '') {
-				$dateLetter3 = strtotime($params['dateLetter3']);
-				$dateLetter3 = date('Y-m-d', $dateLetter3);
-			} else {
-				$dateLetter3 = '';
-			}
-			if ($params['dateLetter4'] != '') {
-				$dateLetter4 = strtotime($params['dateLetter4']);
-				$dateLetter4 = date('Y-m-d', $dateLetter4);
-			} else {
-				$dateLetter4 = '';
-			}
-			if ($params['dateLetter5'] != '') {
-				$dateLetter5 = strtotime($params['dateLetter5']);
-				$dateLetter5 = date('Y-m-d', $dateLetter5);
-			} else {
-				$dateLetter5 = '';
-			}
-
-			$values = [];
-			$ids = [];
 
 			foreach ($params["owners"] as $owner) {
+				
+				if ($owner['dateStage1'] != '') {
+					$dateStage1 = strtotime($owner['dateStage1']);
+					$dateStage1 = date('Y-m-d', $dateStage1);
+				} else {
+					$dateStage1 = '';
+				}
+				if ($owner['dateStage2'] != '') {
+					$dateStage2 = strtotime($owner['dateStage2']);
+					$dateStage2 = date('Y-m-d', $dateStage2);
+				} else {
+					$dateStage2 = '';
+				}
+				if ($owner['dateLetter1'] != '') {
+					$dateLetter1 = strtotime($owner['dateLetter1']);
+					$dateLetter1 = date('Y-m-d', $dateLetter1);
+				} else {
+					$dateLetter1 = '';
+				}
+				if ($owner['dateLetter2'] != '') {
+					$dateLetter2 = strtotime($owner['dateLetter2']);
+					$dateLetter2 = date('Y-m-d', $dateLetter2);
+				} else {
+					$dateLetter2 = '';
+				}
+				if ($owner['dateLetter3'] != '') {
+					$dateLetter3 = strtotime($owner['dateLetter3']);
+					$dateLetter3 = date('Y-m-d', $dateLetter3);
+				} else {
+					$dateLetter3 = '';
+				}
+				if ($owner['dateLetter4'] != '') {
+					$dateLetter4 = strtotime($owner['dateLetter4']);
+					$dateLetter4 = date('Y-m-d', $dateLetter4);
+				} else {
+					$dateLetter4 = '';
+				}
+				if ($owner['dateLetter5'] != '') {
+					$dateLetter5 = strtotime($owner['dateLetter5']);
+					$dateLetter5 = date('Y-m-d', $dateLetter5);
+				} else {
+					$dateLetter5 = '';
+				}
+
+				if ($owner['isStage2'] == 'Yes') {
+					$isStage2 = 1;
+				} elseif ($owner['isStage2'] == 'No') {
+					$isStage2 = 0;
+				} elseif (is_numeric($owner['isStage2'])) {
+					$isStage2 = $owner['isStage2'];
+				} else {
+					$isStage2 = 0;
+				}
 				
 				$values = "(".$params['siteLogNo'].",
 						    '".$dateFound."',
 						    '".str_replace("'", "''", $params['siteName'])."',
-						    '".str_replace("'", "''", $params['siteNotes'])."',
-						    '".str_replace("'", "''", $params['siteAddress'])."',
-						    '".str_replace("'", "''", $params['streetName'])."',						    
-						    '".str_replace("'", "''", $params['sitePostcode'])."',
-						    '".str_replace("'", "''", $params['titleNumber'])."',
-						    '".str_replace("'", "''", $params['propertyType'])."',
-						    '".str_replace("'", "''", $owner['type'])."',
+						    '".str_replace("'", "''", $owner['siteNotes'])."',
+						    '".str_replace("'", "''", $owner['siteAddress'])."',
+						    '".str_replace("'", "''", $owner['streetName'])."',						    
+						    '".str_replace("'", "''", $owner['sitePostcode'])."',
+						    '".str_replace("'", "''", $owner['titleNumber'])."',
+						    '".str_replace("'", "''", $owner['propertyType'])."',
+						    '".str_replace("'", "''", $owner['ownerType'])."',
 						    '".str_replace("'", "''", $owner['companyName'])."',
 						    '".str_replace("'", "''", $owner['individualsNames'])."',
-						    '".str_replace("'", "''", $owner['address'])."',
-						    '".str_replace("'", "''", $params['titleArea'])."',
-						    '".str_replace("'", "''", $params['landInsightSite'])."',
-						    '".str_replace("'", "''", $params['landInsightTitle'])."',
-						    '".str_replace("'", "''", $params['qualify'])."',
+						    '".str_replace("'", "''", $owner['ownerAddress'])."',
+						    '".str_replace("'", "''", $owner['titleArea'])."',
+						    '".str_replace("'", "''", $owner['landinsightSite'])."',
+						    '".str_replace("'", "''", $owner['landinsightTitle'])."',
+						    '".str_replace("'", "''", $owner['qualify'])."',
 						    '".$dateStage1."',
 						    '".$dateStage2."',
-						    '".str_replace("'", "''", $params['templateLetter1'])."',
+						    '".str_replace("'", "''", $owner['templateLetter1'])."',
 						    '".$dateLetter1."',
 						    '".$dateLetter2."',
 						    '".$dateLetter3."',
 						    '".$dateLetter4."',
 						    '".$dateLetter5."',
-						    ".$params['isStage2'].",
+						    ".$isStage2.",
 						    '".str_replace("'", "''", $params['stage1File'])."',
 						    '".str_replace("'", "''", $params['stage2File'])."',
 						    '".str_replace("'", "''", $params['otherFile'])."',
@@ -312,7 +383,7 @@
 					    dateStage1, dateStage2, templateLetter1, dateLetter1, dateLetter2, dateLetter3, dateLetter4, dateLetter5, isStage2,
 					    fileStage1, fileStage2, fileOther, filePowerPoint, fileTitle) VALUES " . $values;
 
-				$query = mysql_query($sql, $link) or die('Error');
+				$query = mysql_query($sql, $link) or die(mysql_error());
 
 				$ids[] = mysql_insert_id();
 
@@ -326,10 +397,40 @@
 
 		} elseif ($CRUD == 'update') {
 
+			$sql = "DELETE FROM $tableName WHERE SiteLogNo = ".$params['SiteLogNo']." AND (dateStage1 <> '0000-00-00' OR dateStage2 <> '0000-00-00' OR dateLetter1 <> '0000-00-00' OR dateLetter2 <> '0000-00-00' OR dateLetter3 <> '0000-00-00' OR dateLetter4 <> '0000-00-00' OR dateLetter5 <> '0000-00-00')";
+			$query = mysql_query($sql, $link) or die(mysql_error());
+			
 			// No owners
-			if (count($params["owners"]) == 0) {
-				$params["owners"][] = [ "type" => '', "companyName" => '', "individualsNames" => '', "address" => '' ];
+			if (count($params["owners"]) == 0) {				
+				$params["owners"][] = [
+					"siteNotes" => "",
+					"siteAddress" => "",
+					"sitePostcode" => "",
+					"titleNumber" => "",
+					"streetName" => "",
+					"propertyType" => "Freehold",
+					"ownerType" => "",
+					"companyName" => "",
+					"individualsNames" => "",
+					"ownerAddress" => "",
+					"titleArea" => "",
+					"landinsightSite" => "",
+					"landinsightTitle" => "",
+					"qualify" => "",
+					"templateLetter1" => "Land Agent Approach",
+					"dateLetter1" => "",
+					"dateLetter2" => "",
+					"dateLetter3" => "",
+					"dateLetter4" => "",
+					"dateLetter5" => "",
+					"dateStage1" => "",
+					"dateStage2" => "",
+					"isStage2" => 0
+				];
 			}
+
+			$values = [];
+			$ids = [];
 
 			if ($params['dateFound'] != '') {
 				$dateFound = strtotime($params['dateFound']);
@@ -337,84 +438,82 @@
 			} else {
 				$dateFound = '';
 			}
-			if ($params['dateStage1'] != '') {
-				$dateStage1 = strtotime($params['dateStage1']);
-				$dateStage1 = date('Y-m-d', $dateStage1);
-			} else {
-				$dateStage1 = '';
-			}
-			if ($params['dateStage2'] != '') {
-				$dateStage2 = strtotime($params['dateStage2']);
-				$dateStage2 = date('Y-m-d', $dateStage2);
-			} else {
-				$dateStage2 = '';
-			}
-			if ($params['dateLetter1'] != '') {
-				$dateLetter1 = strtotime($params['dateLetter1']);
-				$dateLetter1 = date('Y-m-d', $dateLetter1);
-			} else {
-				$dateLetter1 = '';
-			}
-			if ($params['dateLetter2'] != '') {
-				$dateLetter2 = strtotime($params['dateLetter2']);
-				$dateLetter2 = date('Y-m-d', $dateLetter2);
-			} else {
-				$dateLetter2 = '';
-			}
-			if ($params['dateLetter3'] != '') {
-				$dateLetter3 = strtotime($params['dateLetter3']);
-				$dateLetter3 = date('Y-m-d', $dateLetter3);
-			} else {
-				$dateLetter3 = '';
-			}
-			if ($params['dateLetter4'] != '') {
-				$dateLetter4 = strtotime($params['dateLetter4']);
-				$dateLetter4 = date('Y-m-d', $dateLetter4);
-			} else {
-				$dateLetter4 = '';
-			}
-			if ($params['dateLetter5'] != '') {
-				$dateLetter5 = strtotime($params['dateLetter5']);
-				$dateLetter5 = date('Y-m-d', $dateLetter5);
-			} else {
-				$dateLetter5 = '';
-			}
-
-			$sql = "DELETE FROM $tableName 
-			        WHERE siteName = '".str_replace("'", "''", $params['originalSiteName'])."'";
-
-			$query = mysql_query($sql, $link) or die('Error');
-
-			$values = [];
-
-			if ($params['isStage2'] == 'Yes') {
-				$isStage2 = 1;
-			} else {
-				$isStage2 = 0;
-			}
 
 			foreach ($params["owners"] as $owner) {
+
+				if ($owner['dateStage1'] != '') {
+					$dateStage1 = strtotime($owner['dateStage1']);
+					$dateStage1 = date('Y-m-d', $dateStage1);
+				} else {
+					$dateStage1 = '';
+				}
+				if ($owner['dateStage2'] != '') {
+					$dateStage2 = strtotime($owner['dateStage2']);
+					$dateStage2 = date('Y-m-d', $dateStage2);
+				} else {
+					$dateStage2 = '';
+				}
+				if ($owner['dateLetter1'] != '') {
+					$dateLetter1 = strtotime($owner['dateLetter1']);
+					$dateLetter1 = date('Y-m-d', $dateLetter1);
+				} else {
+					$dateLetter1 = '';
+				}
+				if ($owner['dateLetter2'] != '') {
+					$dateLetter2 = strtotime($owner['dateLetter2']);
+					$dateLetter2 = date('Y-m-d', $dateLetter2);
+				} else {
+					$dateLetter2 = '';
+				}
+				if ($owner['dateLetter3'] != '') {
+					$dateLetter3 = strtotime($owner['dateLetter3']);
+					$dateLetter3 = date('Y-m-d', $dateLetter3);
+				} else {
+					$dateLetter3 = '';
+				}
+				if ($owner['dateLetter4'] != '') {
+					$dateLetter4 = strtotime($owner['dateLetter4']);
+					$dateLetter4 = date('Y-m-d', $dateLetter4);
+				} else {
+					$dateLetter4 = '';
+				}
+				if ($owner['dateLetter5'] != '') {
+					$dateLetter5 = strtotime($owner['dateLetter5']);
+					$dateLetter5 = date('Y-m-d', $dateLetter5);
+				} else {
+					$dateLetter5 = '';
+				}
+
+				if ($owner['isStage2'] == 'Yes') {
+					$isStage2 = 1;
+				} elseif ($owner['isStage2'] == 'No') {
+					$isStage2 = 0;
+				} elseif (is_numeric($owner['isStage2'])) {
+					$isStage2 = $owner['isStage2'];
+				} else {
+					$isStage2 = 0;
+				}
 				
-				$values[] = "(".$params['siteLogNo'].",
+				$values = "(".$params['SiteLogNo'].",
 						    '".$dateFound."',
 						    '".str_replace("'", "''", $params['siteName'])."',
-						    '".str_replace("'", "''", $params['siteNotes'])."',
-						    '".str_replace("'", "''", $params['siteAddress'])."',
-						    '".str_replace("'", "''", $params['streetName'])."',
-						    '".str_replace("'", "''", $params['sitePostcode'])."',
-						    '".str_replace("'", "''", $params['titleNumber'])."',
-						    '".str_replace("'", "''", $params['propertyType'])."',
-						    '".str_replace("'", "''", $owner['type'])."',
+						    '".str_replace("'", "''", $owner['siteNotes'])."',
+						    '".str_replace("'", "''", $owner['siteAddress'])."',
+						    '".str_replace("'", "''", $owner['streetName'])."',						    
+						    '".str_replace("'", "''", $owner['sitePostcode'])."',
+						    '".str_replace("'", "''", $owner['titleNumber'])."',
+						    '".str_replace("'", "''", $owner['propertyType'])."',
+						    '".str_replace("'", "''", $owner['ownerType'])."',
 						    '".str_replace("'", "''", $owner['companyName'])."',
 						    '".str_replace("'", "''", $owner['individualsNames'])."',
-						    '".str_replace("'", "''", $owner['address'])."',
-						    '".str_replace("'", "''", $params['titleArea'])."',
-						    '".str_replace("'", "''", $params['landInsightSite'])."',
-						    '".str_replace("'", "''", $params['landInsightTitle'])."',
-						    '".str_replace("'", "''", $params['qualify'])."',
+						    '".str_replace("'", "''", $owner['ownerAddress'])."',
+						    '".str_replace("'", "''", $owner['titleArea'])."',
+						    '".str_replace("'", "''", $owner['landinsightSite'])."',
+						    '".str_replace("'", "''", $owner['landinsightTitle'])."',
+						    '".str_replace("'", "''", $owner['qualify'])."',
 						    '".$dateStage1."',
 						    '".$dateStage2."',
-						    '".str_replace("'", "''", $params['templateLetter1'])."',
+						    '".str_replace("'", "''", $owner['templateLetter1'])."',
 						    '".$dateLetter1."',
 						    '".$dateLetter2."',
 						    '".$dateLetter3."',
@@ -426,19 +525,22 @@
 						    '".str_replace("'", "''", $params['otherFile'])."',
 						    '".str_replace("'", "''", $params['powerPointFile'])."',
 						    '".str_replace("'", "''", $params['titleFile'])."')";
-			}
 
-			$sql = "INSERT INTO $tableName 
-				    (SiteLogNo, dateFound, siteName, siteNotes, siteAddress, streetName, sitePostcode, titleNumber, propertyType, 
-				    ownerType, companyName, individualsNames, ownerAddress, 
-				    titleArea, landinsightSite, landinsightTitle, qualify, 
-				    dateStage1, dateStage2, templateLetter1, dateLetter1, dateLetter2, dateLetter3, dateLetter4, dateLetter5, isStage2,
-				    fileStage1, fileStage2, fileOther, filePowerPoint, fileTitle) VALUES " . implode(",", $values);
+				$sql = "INSERT INTO $tableName 
+					    (SiteLogNo, dateFound, siteName, siteNotes, siteAddress, streetName, sitePostcode, titleNumber, propertyType, 
+					    ownerType, companyName, individualsNames, ownerAddress, 
+					    titleArea, landinsightSite, landinsightTitle, qualify, 
+					    dateStage1, dateStage2, templateLetter1, dateLetter1, dateLetter2, dateLetter3, dateLetter4, dateLetter5, isStage2,
+						fileStage1, fileStage2, fileOther, filePowerPoint, fileTitle) VALUES " . $values;
+				
+				$query = mysql_query($sql, $link) or die(mysql_error());
 
-			$query = mysql_query($sql, $link) or die('Error');
+				$ids[] = mysql_insert_id();
+
+			}			
 			
 			$out = [
-				'records_added' => count($params["owners"]),
+				'id' => implode(",", $ids),
 				'status' => 'success'
 			];
 			echo json_encode($out);
@@ -510,10 +612,10 @@
 						sitePostcode = '".str_replace("'", "''", $params['sitePostcode'])."',
 						titleNumber = '".str_replace("'", "''", $params['titleNumber'])."',
 						propertyType = '".str_replace("'", "''", $params['propertyType'])."',
-						ownerType = '".str_replace("'", "''", $params['owner_type'])."',
-						companyName = '".str_replace("'", "''", $params['owner_companyName'])."',
-						individualsNames = '".str_replace("'", "''", $params['owner_individualsNames'])."',
-						ownerAddress = '".str_replace("'", "''", $params['owner_address'])."',
+						ownerType = '".str_replace("'", "''", $params['ownerType'])."',
+						companyName = '".str_replace("'", "''", $params['companyName'])."',
+						individualsNames = '".str_replace("'", "''", $params['individualsNames'])."',
+						ownerAddress = '".str_replace("'", "''", $params['ownerAddress'])."',
 						titleArea = '".str_replace("'", "''", $params['titleArea'])."',
 						landinsightSite = '".str_replace("'", "''", $params['landinsightSite'])."',
 						landinsightTitle = '".str_replace("'", "''", $params['landinsightTitle'])."',
@@ -527,12 +629,7 @@
 						dateLetter4 = '".$dateLetter4."',
 						dateLetter5 = '".$dateLetter5."',
 						isStage2 = '".$isStage2."',
-						disabled = '".$params['disabled']."',
-						fileStage1 = '".str_replace("'", "''", $params['stage1File'])."',
-						fileStage2 = '".str_replace("'", "''", $params['stage2File'])."',
-						fileOther = '".str_replace("'", "''", $params['otherFile'])."',
-						filePowerPoint = '".str_replace("'", "''", $params['powerPointFile'])."',
-						fileTitle = '".str_replace("'", "''", $params['titleFile'])."' 
+						disabled = '".$params['disabled']."' 
 			        WHERE id = ".$params['id'];
 
 			$query = mysql_query($sql, $link) or die('Error');
@@ -545,109 +642,17 @@
 
 		} elseif ($CRUD == 'duplicate') {
 
-			// No owners
-			if (count($params["owners"]) == 0) {
-				$params["owners"][] = [ "type" => '', "companyName" => '', "individualsNames" => '', "address" => '' ];
-			}
-
-			if ($params['dateFound'] != '') {
-				$dateFound = strtotime($params['dateFound']);
-				$dateFound = date('Y-m-d', $dateFound);
-			} else {
-				$dateFound = '';
-			}
-			if ($params['dateStage1'] != '') {
-				$dateStage1 = strtotime($params['dateStage1']);
-				$dateStage1 = date('Y-m-d', $dateStage1);
-			} else {
-				$dateStage1 = '';
-			}
-			if ($params['dateStage2'] != '') {
-				$dateStage2 = strtotime($params['dateStage2']);
-				$dateStage2 = date('Y-m-d', $dateStage2);
-			} else {
-				$dateStage2 = '';
-			}
-			if ($params['dateLetter1'] != '') {
-				$dateLetter1 = strtotime($params['dateLetter1']);
-				$dateLetter1 = date('Y-m-d', $dateLetter1);
-			} else {
-				$dateLetter1 = '';
-			}
-			if ($params['dateLetter2'] != '') {
-				$dateLetter2 = strtotime($params['dateLetter2']);
-				$dateLetter2 = date('Y-m-d', $dateLetter2);
-			} else {
-				$dateLetter2 = '';
-			}
-			if ($params['dateLetter3'] != '') {
-				$dateLetter3 = strtotime($params['dateLetter3']);
-				$dateLetter3 = date('Y-m-d', $dateLetter3);
-			} else {
-				$dateLetter3 = '';
-			}
-			if ($params['dateLetter4'] != '') {
-				$dateLetter4 = strtotime($params['dateLetter4']);
-				$dateLetter4 = date('Y-m-d', $dateLetter4);
-			} else {
-				$dateLetter4 = '';
-			}
-			if ($params['dateLetter5'] != '') {
-				$dateLetter5 = strtotime($params['dateLetter5']);
-				$dateLetter5 = date('Y-m-d', $dateLetter5);
-			} else {
-				$dateLetter5 = '';
-			}
-
-			if ($params['isStage2'] == 'Yes') {
-				$isStage2 = 1;
-			} else {
-				$isStage2 = 0;
-			}
-
-			$values = [];
-
-			foreach ($params["owners"] as $owner) {
-				
-				$values[] = "(".$params['siteLogNo'].",
-						    '".$dateFound."',
-						    '".str_replace("'", "''", $params['siteName'])."',
-						    '".str_replace("'", "''", $params['siteNotes'])."',
-						    '".str_replace("'", "''", $params['siteAddress'])."',
-						    '".str_replace("'", "''", $params['streetName'])."',
-						    '".str_replace("'", "''", $params['sitePostcode'])."',
-						    '".str_replace("'", "''", $params['titleNumber'])."',
-						    '".str_replace("'", "''", $params['propertyType'])."',
-						    '".str_replace("'", "''", $owner['type'])."',
-						    '".str_replace("'", "''", $owner['companyName'])."',
-						    '".str_replace("'", "''", $owner['individualsNames'])."',
-						    '".str_replace("'", "''", $owner['address'])."',
-						    '".str_replace("'", "''", $params['titleArea'])."',
-						    '".str_replace("'", "''", $params['landInsightSite'])."',
-						    '".str_replace("'", "''", $params['landInsightTitle'])."',
-						    '".str_replace("'", "''", $params['qualify'])."',
-						    '".$dateStage1."',
-						    '".$dateStage2."',
-						    '".str_replace("'", "''", $params['templateLetter1'])."',
-						    '".$dateLetter1."',
-						    '".$dateLetter2."',
-						    '".$dateLetter3."',
-						    '".$dateLetter4."',
-						    '".$dateLetter5."',
-						    ".$isStage2.",
-						    '".str_replace("'", "''", $params['stage1File'])."',
-						    '".str_replace("'", "''", $params['stage2File'])."',
-						    '".str_replace("'", "''", $params['otherFile'])."',
-						    '".str_replace("'", "''", $params['powerPointFile'])."',
-						    '".str_replace("'", "''", $params['titleFile'])."')";
-			}
-
 			$sql = "INSERT INTO $tableName 
 				    (SiteLogNo, dateFound, siteName, siteNotes, siteAddress, streetName, sitePostcode, titleNumber, propertyType, 
 				    ownerType, companyName, individualsNames, ownerAddress, 
 				    titleArea, landinsightSite, landinsightTitle, qualify, 
 				    dateStage1, dateStage2, templateLetter1, dateLetter1, dateLetter2, dateLetter3, dateLetter4, dateLetter5, isStage2,
-				    fileStage1, fileStage2, fileOther, filePowerPoint, fileTitle) VALUES " . implode(",", $values);
+				    fileStage1, fileStage2, fileOther, filePowerPoint, fileTitle) 
+					SELECT SiteLogNo, dateFound, siteName, siteNotes, siteAddress, streetName, sitePostcode, titleNumber, propertyType, 
+				    ownerType, companyName, individualsNames, ownerAddress, 
+				    titleArea, landinsightSite, landinsightTitle, qualify, 
+				    dateStage1, dateStage2, templateLetter1, dateLetter1, dateLetter2, dateLetter3, dateLetter4, dateLetter5, isStage2,
+				    fileStage1, fileStage2, fileOther, filePowerPoint, fileTitle FROM $tableName WHERE id = " . $params["id"];
 
 			$query = mysql_query($sql, $link) or die('Error');
 
@@ -715,6 +720,7 @@
 
 			while ($row = mysql_fetch_assoc($query)) {
 
+				echo($aRow);
 				$aRow = $aRow + 1;
 
 				$objPHPExcel->getActiveSheet()->setCellValue('A'.$aRow, intval($row['SiteLogNo']));
@@ -732,7 +738,7 @@
 			  	$objPHPExcel->getActiveSheet()->setCellValue('M'.$aRow, $row['titleArea']);
 			  	$objPHPExcel->getActiveSheet()->setCellValue('N'.$aRow, $row['landinsightSite']);
 			  	$objPHPExcel->getActiveSheet()->setCellValue('O'.$aRow, $row['landinsightTitle']);
-			  	if ($row['dateStage1'] != '0000-00-00') {
+				if ($row['dateStage1'] != '0000-00-00') {
 			  		$objPHPExcel->getActiveSheet()->setCellValue('P'.$aRow, $row['dateStage1']);
 			  	}
 			  	$objPHPExcel->getActiveSheet()->setCellValue('Q'.$aRow, $row['qualify']);
@@ -758,8 +764,8 @@
 			  	$objPHPExcel->getActiveSheet()->setCellValue('Y'.$aRow, $row['fileStage2']);
 			  	$objPHPExcel->getActiveSheet()->setCellValue('Z'.$aRow, $row['fileOther']);
 			  	$objPHPExcel->getActiveSheet()->setCellValue('AA'.$aRow, $row['filePowerPoint']);
-			  	$objPHPExcel->getActiveSheet()->setCellValue('AB'.$aRow, $row['fileTitle']);
-
+				$objPHPExcel->getActiveSheet()->setCellValue('AB'.$aRow, $row['fileTitle']);
+				
 			}
 
 			$objPHPExcel->getActiveSheet()->getStyle('B2:B'.$aRow)->getNumberFormat()->setFormatCode('dd/MM/yyyy');
@@ -768,8 +774,13 @@
 
 		    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, $inputFileType);
 			$objWriter->setPreCalculateFormulas(true);
-		  	$objWriter->save('./Sites_Database.xlsx');
+			$objWriter->save('Sites_Database.xlsx');
 
+			$out = [
+				'status' => 'success'
+			];
+			echo json_encode($out);	
+			
 		}
 
 		mysql_close($link);

@@ -1,0 +1,203 @@
+<div class="container-fluid">
+    <div class="navbar navbar-inverse navbar-twitch" role="navigation">
+        <div class="container">
+            <div>
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="#">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Calendar">
+                                <i class="fa fa-calendar" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Calendar</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="#database">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database">
+                                <i class="fa fa-database" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Database Stage 1</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#database2">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Database">
+                                <i class="fa fa-table" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Database Stage 2</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#charts">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Charts">
+                                <i class="fa fa-line-chart" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Charts</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#database" ng-click="addPropertyDB()">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Add Property">
+                                <i class="fa fa-plus" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Add Property</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#database" ng-click="ExportData()">
+                            <span class="small-nav" data-toggle="tooltip" data-placement="right" title="Export">
+                                <i class="fa fa-floppy-o" aria-hidden="true"></i>
+                            </span>
+                            <span class="full-nav">Export</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="margin-left: -30px; margin-top: -15px;">
+        <table st-table="displayedCollection" st-safe-src="dbTableEvents" class="table table-striped table-bordered dbTbl" style="margin-bottom: 0px;">
+            <thead>
+                <tr class="text-center">
+                    <th style="width: 40px !important;">Edit</th>
+                    <th style="width: 40px !important;">Copy</th>
+                    <th style="width: 50px !important;" st-sort="SiteLogNo">Site Log No</th>
+                    <th style="width: 60px !important;" st-sort="dateFound">Date Found</th>
+                    <th style="width: 150px !important;" st-sort="siteName">Site Name</th>
+                    <th style="width: 300px !important;">Site Notes</th>
+                    <th style="width: 150px !important;">Site Address</th>
+                    <th style="width: 100px !important;">Street Name</th>
+                    <th style="width: 100px !important;">Site Postcode</th>
+                    <th style="width: 80px !important;">Title Number</th>
+                    <th style="width: 70px !important;">Freehold Leasehold</th>
+                    <th style="width: 100px !important;">Owner Type</th>
+                    <th style="width: 150px !important;">Company Name</th>
+                    <th style="width: 150px !important;">Individuals Names</th>
+                    <th style="width: 200px !important;">Owner Address</th>
+                    <th style="width: 50px !important;">Title Area (acres)</th>
+                    <th style="width: 50px !important;">View Site on Land Insight</th>
+                    <th style="width: 50px !important;">View Title on Land Insight</th>
+                    <th style="width: 60px !important;">Stage 1</th>
+                    <th style="width: 50px !important;">Qualify?</th>
+                    <th style="width: 60px !important;">Letter 1</th>
+                    <th style="width: 60px !important;">Letter 2</th>
+                    <th style="width: 60px !important;">Letter 3</th>
+                    <th style="width: 60px !important;">Letter 4</th>
+                    <th style="width: 60px !important;">Letter 5</th>
+                    <th style="width: 60px !important;">Stage 2</th>
+                    <th style="width: 50px !important;">Delete</th>
+                    <th style="width: 80px !important;">Disable</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th style="padding: 0;">
+                        <input type="search" ng-model="filterSiteLogNo" class="st-small form-control text-center" style="height: 10px; width: 23px; font-size: 10px;"
+                        />
+                    </th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+        </table>
+        <div class="table-responsive" id="dbTable" style="height: 89vh; width: 2517px !important;">
+            <table st-table="displayedCollection" class="table table-striped table-bordered dbTbl" id="dbTbl">
+                <tbody>
+                    <tr id="db-{{ $index }}" ng-repeat="dayEvent in displayedCollection | filter: {	SiteLogNo: filterSiteLogNo } : false" ng-click="setActiveLine($index)"
+                        data-ng-class="{ success: dayEvent.selected == 'selected' }">
+                        <td style="width: 40px !important; color: red;">
+                            <i class="fa fa-pencil fa-lg" aria-hidden="true" ng-click="editPropertyByID(dayEvent)"></i>
+                        </td>
+                        <td style="width: 40px !important; color: darkorange;">
+                            <i class="fa fa-files-o fa-lg" aria-hidden="true" ng-click="duplicateRecord(dayEvent)"></i>
+                        </td>
+                        <td style="width: 50px !important;">{{ dayEvent.SiteLogNo }}</td>
+                        <td style="width: 60px !important;">{{ dayEvent.dateFound | date : 'dd MMM yyyy' }}</td>
+                        <td style="width: 150px !important;">{{ dayEvent.siteName }}</td>
+                        <td style="width: 300px !important;">{{ dayEvent.siteNotes }}</td>
+                        <td style="width: 150px !important;">{{ dayEvent.siteAddress }}</td>
+                        <td style="width: 100px !important;">{{ dayEvent.streetName }}</td>
+                        <td style="width: 100px !important;">{{ dayEvent.sitePostcode }}</td>
+                        <td style="width: 80px !important;">
+                            <a target="_blank" ng-href="files/title/{{ dayEvent.fileTitle }}" ng-show="dayEvent.fileTitle">{{ dayEvent.titleNumber }}</a>
+                            <span ng-show="!dayEvent.fileTitle">{{ dayEvent.titleNumber }}</span>
+                        </td>
+                        <td style="width: 70px !important;">{{ dayEvent.propertyType }}</td>
+                        <td style="width: 100px !important;">{{ dayEvent.ownerType }}</td>
+                        <td style="width: 150px !important;">{{ dayEvent.companyName }}</td>
+                        <td style="width: 150px !important;">{{ dayEvent.individualsNames }}</td>
+                        <td style="width: 200px !important;">{{ dayEvent.ownerAddress }}</td>
+                        <td style="width: 50px !important;">{{ dayEvent.titleArea }}</td>
+                        <td style="width: 50px !important;">
+                            <a target="_blank" ng-href="{{ dayEvent.landinsightSite }}" ng-show="dayEvent.landinsightSite">LINK</a>
+                        </td>
+                        <td style="width: 50px !important;">
+                            <a target="_blank" ng-href="{{ dayEvent.landinsightTitle }}" ng-show="dayEvent.landinsightTitle">LINK</a>
+                        </td>
+                        <td style="width: 60px !important;">
+                            {{ dayEvent.Stage1 | date : 'dd MMM yyyy' }}
+                        </td>
+                        <td style="width: 50px !important;">{{ dayEvent.qualify }}</td>
+                        <td style="width: 60px !important;">
+                            <i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter1" ng-click="processWordTemplate(dayEvent, 'Letter1')"
+                                style="color: green;"></i>
+                            {{ dayEvent.Letter1 | date : 'dd MMM yyyy' }}
+                        </td>
+                        <td style="width: 60px !important;">
+                            <i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter2" ng-click="processWordTemplate(dayEvent, 'Letter2')"
+                                style="color: green;"></i>
+                            {{ dayEvent.Letter2 | date : 'dd MMM yyyy' }}
+                        </td>
+                        <td style="width: 60px !important;">
+                            <i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter3" ng-click="processWordTemplate(dayEvent, 'Letter3')"
+                                style="color: green;"></i>
+                            {{ dayEvent.Letter3 | date : 'dd MMM yyyy' }}
+                        </td>
+                        <td style="width: 60px !important;">
+                            <i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter4" ng-click="processWordTemplate(dayEvent, 'Letter4')"
+                                style="color: green;"></i>
+                            {{ dayEvent.Letter4 | date : 'dd MMM yyyy' }}
+                        </td>
+                        <td style="width: 60px !important;">
+                            <i class="fa fa-floppy-o pull-left" aria-hidden="true" ng-show="dayEvent.Letter5" ng-click="processWordTemplate(dayEvent, 'Letter5')"
+                                style="color: green;"></i>
+                            {{ dayEvent.Letter5 | date : 'dd MMM yyyy' }}
+                        </td>
+                        <td style="width: 60px !important;">
+                            {{ dayEvent.Stage2 | date : 'dd MMM yyyy' }}
+                        </td>
+                        <td style="width: 50px !important; color: red;">
+                            <i class="fa fa-trash-o fa-lg" aria-hidden="true" ng-click="deleteProperty(dayEvent)"></i>
+                        </td>
+                        <td style="width: 80px !important;">
+                            <input type="checkbox" ng-model="dayEvent.disabled" ng-init="dayEvent.disabled" ng-change="updateDisabled(dayEvent)">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

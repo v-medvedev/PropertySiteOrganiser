@@ -1,0 +1,216 @@
+<div class="modal-header" style="background: #eee;">
+        <h1>Edit Owner</h1>
+    </div>
+    <div class="modal-body">
+        <form class="form-horizontal" style="padding-left: 10px; padding-right: 10px;">
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Site Notes</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" ng-model="owner.siteNotes" placeholder="Site Notes">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Site Address</label>
+                <div class="col-sm-10">
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="owner.siteAddress" placeholder="Site Address">
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="listAvailableOptions('siteAddress')">
+                                <i class="glyphicon glyphicon-chevron-down"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Site Postcode</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="owner.sitePostcode" placeholder="Site Address">
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="listAvailableOptions('sitePostcode')">
+                                <i class="glyphicon glyphicon-chevron-down"></i>
+                            </button>
+                        </span>
+                    </div>  
+                </div>
+                <label class="col-sm-2 control-label">Title Number</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="owner.titleNumber" placeholder="Site Address">
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="listAvailableOptions('titleNumber')">
+                                <i class="glyphicon glyphicon-chevron-down"></i>
+                            </button>
+                        </span>
+                    </div>  
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Type</label>
+                <div class="col-sm-4">
+                    <select class="form-control" ng-model="owner.propertyType" ng-init="owner.propertyType" ng-options="propertyType for propertyType in propertyTypes"
+                        required></select>
+                </div>
+                <label class="col-sm-2 control-label">Street Name (Word Doc)</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" ng-model="owner.streetName" placeholder="Street Name">
+                </div>
+            </div>
+            <hr>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Owner Type</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" ng-model="owner.ownerType" placeholder="Owner Type">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Company Name</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" ng-model="owner.companyName" placeholder="Company Name">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Individuals Names</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" ng-model="owner.individualsNames" placeholder="Individuals Names">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Owner Address</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" ng-model="owner.ownerAddress" placeholder="Owner Address">
+                </div>
+            </div>
+            <hr>                
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Title Area (acres)</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" ng-model="owner.titleArea" placeholder="Title Area">
+                </div>
+                <label class="col-sm-2 control-label">Template Letter 1</label>
+                <div class="col-sm-4">
+                    <select class="form-control" ng-model="owner.templateLetter1" ng-init="owner.templateLetter1" ng-options="templateLetter1 for templateLetter1 in templatesLetter1"
+                        required></select>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">View Site</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" ng-model="owner.landinsightSite" placeholder="View Site on Land Insight">
+                </div>
+                <label class="col-sm-2 control-label">Letter 1</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="owner.dateLetter1" is-open="openedDateLetter1"
+                            close-text="Close" ng-change="updateLetterDates()" />
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter1DatePicker()">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">View Title</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" ng-model="owner.landinsightTitle" placeholder="View Title on Land Insight">
+                </div>
+                <label class="col-sm-2 control-label">Letter 2 (8W)</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="owner.dateLetter2" is-open="openedDateLetter2"
+                            close-text="Close" ng-change="updateLetter2Date()" />
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter2DatePicker()">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Qualify?</label>
+                <div class="col-sm-4">
+                    <select class="form-control" ng-model="owner.qualify" ng-init="owner.qualify" ng-options="qualify for qualify in qualifyOptions"
+                        required></select>
+                </div>
+                <label class="col-sm-2 control-label">Letter 3 (16W)</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="owner.dateLetter3" is-open="openedDateLetter3"
+                            close-text="Close" />
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter3DatePicker()">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Stage 1</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="owner.dateStage1" is-open="openedDateStage1"
+                            close-text="Close" />
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="openDateStage1DatePicker()">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+                <label class="col-sm-2 control-label">Letter 4</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="owner.dateLetter4" is-open="openedDateLetter4"
+                            close-text="Close" />
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter4DatePicker()">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Stage 2</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="owner.dateStage2" is-open="openedDateStage2"
+                            close-text="Close" />
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="openDateStage2DatePicker()">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+                <label class="col-sm-2 control-label">Letter 5</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="owner.dateLetter5" is-open="openedDateLetter5"
+                            close-text="Close" />
+                        <span class="input-group-btn">
+                            <button style="height:34px;" class="btn btn-default" ng-click="openDateLetter5DatePicker()">
+                                <i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 5px !important;">
+                <label class="col-sm-2 control-label">Is Stage 2?</label>
+                <div class="col-sm-4">
+                    <select class="form-control" ng-model="owner.isStage2" ng-init="owner.isStage2" ng-options="isStage2 for isStage2 in stage2Options"
+                        required></select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="Save()">Save</button>
+        <button class="btn btn-warning" ng-click="Cancel()">Cancel</button>
+    </div>

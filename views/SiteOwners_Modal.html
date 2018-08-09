@@ -1,0 +1,16 @@
+<div class="modal-header">
+    <h1>{{ params.SiteLogNo + ' - ' + params.siteName }}</h1>
+</div>
+<div class="modal-body">
+    <ul class="list-group">
+        <li class="list-group-item" ng-repeat="owner in params.owners" ng-if="owner.stages[params.fileType] == params.letterDate" ng-show="owner.individualsNames != ''">{{ owner.individualsNames }}
+            <i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(owner)" title="Generate Letter"></i>
+        </li>
+        <li class="list-group-item" ng-repeat="owner in params.owners" ng-if="owner.stages[params.fileType] == params.letterDate" ng-show="owner.individualsNames == ''" style="color: red;">Missing Individual Names
+            <i class="fa fa-floppy-o pull-right" aria-hidden="true" style="margin-right: 10px;" ng-click="exportSingleLetter(owner)" title="Generate Letter"></i>
+        </li>
+    </ul>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-danger" ng-click="Close()">Close</button>
+</div>

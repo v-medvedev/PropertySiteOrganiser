@@ -1,0 +1,51 @@
+<div class="modal-header" style="background: #eee;">
+    <h1>Add ToDo</h1>
+</div>
+<div class="modal-body">
+    <form class="form-horizontal" style="padding-left: 10px; padding-right: 10px;">
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-3 control-label">Title</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" ng-model="todo.title" placeholder="Title">
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-3 control-label">Description</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" ng-model="todo.description" placeholder="Description">
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-3 control-label">Reminder Date</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="todo.dateReminder" name="dateReminder"
+                        is-open="openedDateReminder" close-text="Close" />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default" ng-click="openDateReminderPicker()">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-3 control-label">Actual Date</label>
+            <div class="col-sm-9">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="todo.dateActual" name="dateActual" is-open="openedDateActual"
+                        close-text="Close" />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default" ng-click="openDateActualPicker()">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="Save()">Save</button>
+    <button class="btn btn-warning" ng-click="Cancel()">Cancel</button>
+</div>

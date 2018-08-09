@@ -1,0 +1,25 @@
+<div class="modal-header" style="background: #eee;">
+    <h1>Reschedule All Letters</h1>
+</div>
+<div class="modal-body">
+    <form class="form-horizontal" name="userForm" style="padding-left: 10px; padding-right: 10px;" novalidate>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">New Date:</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="scheduledDate" name="dateLetter" is-open="openedDateLetter"
+                        close-text="Close" />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default" ng-click="openDatePicker()">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="Confirm()">Confirm</button>
+    <button class="btn btn-danger" ng-click="Cancel()">Cancel</button>
+</div>

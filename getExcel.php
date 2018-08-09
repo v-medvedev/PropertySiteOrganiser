@@ -5,6 +5,8 @@
 	error_reporting(E_ALL);
 	ini_set('display_errors', '1');
 
+	$time_start = microtime(true);
+
 	require_once './Classes/PHPExcel/IOFactory.php';
 
 	$xlFile = 'Template.xlsx';
@@ -31,6 +33,7 @@
 
 	while ($row = mysql_fetch_assoc($query)) {
 
+		echo('Site Log No:' . intval($row['SiteLogNo']) . "<br>");
 		$aRow = $aRow + 1;
 
 		$objPHPExcel->getActiveSheet()->setCellValue('A'.$aRow, intval($row['SiteLogNo']));
@@ -75,12 +78,23 @@
 	  	$objPHPExcel->getActiveSheet()->setCellValue('Z'.$aRow, $row['fileOther']);
 	  	$objPHPExcel->getActiveSheet()->setCellValue('AA'.$aRow, $row['filePowerPoint']);
 	  	$objPHPExcel->getActiveSheet()->setCellValue('AB'.$aRow, $row['fileTitle']);
-
+		
+		$time_end = microtime(true);
+    	$time = intval($time_end - $time_start);
+    	echo "Process Time: {$time}sec<hr>";
 	}
+
+	echo("Formatting<br>");
 
 	$objPHPExcel->getActiveSheet()->getStyle('B2:B'.$aRow)->getNumberFormat()->setFormatCode('d/m/y');
 	$objPHPExcel->getActiveSheet()->getStyle("A1:AB".$aRow)->getFont()->setName('Calibri')
                            								   ->setSize(10);
+	
+	$time_end = microtime(true);
+	$time = $time_end - $time_start;
+	echo "Process Time: {$time}sec<hr>";
+
+	echo("Saving<br>");
 
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, $inputFileType);
 	$objWriter->setPreCalculateFormulas(true);
@@ -88,7 +102,13 @@
 
   	$attachment_location = './Sites_Database.xlsx';
 
-  	if (file_exists($attachment_location)) {
+	$time_end = microtime(true);
+	$time = $time_end - $time_start;
+	echo "Process Time: {$time}sec<hr>";
+
+	echo("Export<br>");
+	  
+	if (file_exists($attachment_location)) {
         header($_SERVER["SERVER_PROTOCOL"] . " 200 OK");
         header("Cache-Control: public"); // needed for internet explorer
         header("Content-Type: application/zip");

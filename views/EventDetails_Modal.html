@@ -1,0 +1,253 @@
+<div class="modal-header" style="background: #eee;">
+    <h1>{{ params.siteName }}</h1>
+</div>
+<div class="modal-body">
+    <form class="form-horizontal" name="userForm" style="padding-left: 10px; padding-right: 10px;">
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Site Log Number</label>
+            <div class="col-sm-2">
+                <input type="number" min="1" class="form-control" ng-model="params.SiteLogNo" placeholder="Site No" readonly>
+            </div>
+            <label class="col-sm-4 control-label">Date Found</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.dateFound" is-open="false" close-text="Close"
+                        readonly />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Site Name</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" ng-model="params.siteName" readonly>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Site Notes</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" ng-model="params.siteNotes" readonly>
+            </div>
+        </div>
+        <br>
+        <div class="form-group" style="margin-bottom: 10px !important;">
+            <table class="table table-striped table-bordered table-hover table-condensed" style="width: 100%; margin-bottom: 5px !important;">
+                <thead style='background: #337ab7; color: #ffffff;'>
+                    <tr>
+                        <th style="width: 10%;">Owner Type</th>
+                        <th style="width: 25%;">Company Name</th>
+                        <th style="width: 25%;">Individuals Names</th>
+                        <th style="width: 40%;">Owner Address</th>
+                    </tr>
+                </thead>
+                <tbody ng-show="params.owners.length > 0">
+                    <tr ng-repeat="owner in params.owners" ng-click="setActiveOwner($index)" data-ng-class="{ success: owner.state == 'selected' }" style="height: 27px;">
+                        <td>{{ owner.ownerType }}</td>
+                        <td>{{ owner.companyName }}</td>
+                        <td>{{ owner.individualsNames }}</td>
+                        <td>{{ owner.ownerAddress }}</td>
+                    </tr>
+                </tbody>
+                <tbody ng-show="params.owners.length == 0">
+                    <tr style="height: 27px;">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Site Address</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].siteAddress" readonly>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Site Postcode</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].sitePostcode" readonly>
+            </div>
+            <label class="col-sm-2 control-label">Title Number</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].titleNumber" readonly>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Type</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].propertyType" readonly>
+            </div>
+            <label class="col-sm-2 control-label">Street Name (Word Doc)</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].streetName" readonly>
+            </div>
+        </div>
+        <br/>
+        
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Title Area (acres)</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].titleArea" readonly>
+            </div>
+            <label class="col-sm-2 control-label">Template Letter 1</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].templateLetter1" readonly>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">View Site</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].landinsightSite" readonly>
+            </div>
+            <label class="col-sm-2 control-label">Letter 1</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.owners[activeOwner].stages.letter1"
+                        is-open="false" close-text="Close" readonly />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">View Title</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].landinsightTitle" readonly>
+            </div>
+            <label class="col-sm-2 control-label">Letter 2 (8W)</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.owners[activeOwner].stages.letter2"
+                        is-open="false" close-text="Close" readonly />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Qualify?</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" ng-model="params.owners[activeOwner].qualify" readonly>
+            </div>
+            <label class="col-sm-2 control-label">Letter 3 (16W)</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.owners[activeOwner].stages.letter3"
+                        is-open="false" close-text="Close" readonly />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Stage 1</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.owners[activeOwner].stages.stage1"
+                        is-open="false" close-text="Close" readonly />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <label class="col-sm-2 control-label">Letter 4</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.owners[activeOwner].stages.letter4"
+                        is-open="false" close-text="Close" readonly />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px !important;">
+            <label class="col-sm-2 control-label">Stage 2</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.owners[activeOwner].stages.stage2"
+                        is-open="false" close-text="Close" readonly />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <label class="col-sm-2 control-label">Letter 5</label>
+            <div class="col-sm-4">
+                <div class="input-group">
+                    <input type="text" class="form-control" uib-datepicker-popup="dd MMM yyyy" ng-model="params.owners[activeOwner].stages.letter5"
+                        is-open="false" close-text="Close" readonly />
+                    <span class="input-group-btn">
+                        <button style="height:34px;" class="btn btn-default">
+                            <i class="glyphicon glyphicon-calendar"></i>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="form-group" style="margin-top: 10px; margin-bottom: 0px !important;">
+            <div class="btn-group btn-group-justified" role="group" aria-label="...">
+                <div class="btn-group" role="group">
+                    <button type="button" id="stage1Btn" class="btn" ng-class="params.fileStage1 ? 'btn-default' : 'btn-primary'">Stage 1</button>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" id="stage2Btn" class="btn" ng-class="params.fileStage2 ? 'btn-default' : 'btn-primary'">Stage 2</button>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" id="otherBtn" class="btn" ng-class="params.fileOther ? 'btn-default' : 'btn-primary'">Other</button>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" id="powerBtn" class="btn" ng-class="params.filePowerPoint ? 'btn-default' : 'btn-primary'">PowerPoint</button>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" id="titleBtn" class="btn" ng-class="params.fileTitle ? 'btn-default' : 'btn-primary'">Title</button>
+                </div>
+            </div>
+        </div>
+        <div class="btn-group btn-group-justified" role="group" aria-label="...">
+            <table class="table" style="width: 878px; margin-left: -15px; margin-right: -15px; margin-bottom: 0px;">
+                <tr>
+                    <td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+                        <a href="files/stage1/{{ params.owners[activeOwner].fileStage1 }}" ng-show="params.owners[activeOwner].fileStage1">{{ params.owners[activeOwner].fileStage1 | limitTo : 25 }}</a>
+                    </td>
+                    <td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+                        <a href="files/stage2/{{ params.owners[activeOwner].fileStage2 }}" ng-show="params.owners[activeOwner].fileStage2">{{ params.owners[activeOwner].fileStage2 | limitTo : 25 }}</a>
+                    </td>
+                    <td style="width: 176px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+                        <a href="files/other/{{ params.owners[activeOwner].fileOther }}" ng-show="params.owners[activeOwner].fileOther">{{ params.owners[activeOwner].fileOther | limitTo : 25 }}</a>
+                    </td>
+                    <td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+                        <a href="files/power/{{ params.owners[activeOwner].filePowerPoint }}" ng-show="params.owners[activeOwner].filePowerPoint">{{ params.owners[activeOwner].filePowerPoint | limitTo : 25 }}</a>
+                    </td>
+                    <td style="width: 175px !important; font-size: 12px; color: #337ab7; padding-left: 0px;">
+                        <a href="files/title/{{ params.owners[activeOwner].fileTitle }}" ng-show="params.owners[activeOwner].fileTitle">{{ params.owners[activeOwner].fileTitle | limitTo : 25 }}</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="Hide()">Hide</button>
+</div>

@@ -1,0 +1,560 @@
+<!doctype html>
+<html>
+   <head>
+      <style type="text/css">
+         html, body {
+            height: 100%;
+         }
+         #map {
+            height:100%;
+            width:100%;
+            display:block;
+            margin: 0 auto;
+         }
+         hr {
+            margin-top: 5px !important;
+            margin-bottom: 0 !important;
+         }
+      </style>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+      <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+      <script type="text/javascript" src="ajaxq.js"></script>
+      <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiYtd1C1eJtjekAbY2jVXVwj90stSL110"></script>
+      <script type="text/javascript" src="oms.min.js"></script>
+      <script type="text/javascript">
+
+         (function($) {
+            $.rand = function(arg) {
+               if ($.isArray(arg)) {
+                  return arg[$.rand(arg.length)];
+               } else if (typeof arg === "number") {
+                  return Math.floor(Math.random() * arg);
+               } else {
+                  return 4;  // chosen by fair dice roll
+               }
+            };
+         })(jQuery);
+
+         $(document).ready(function () {
+            var map;
+            var elevator;
+            var myOptions = {
+               zoom: 0,
+               center: new google.maps.LatLng(51.5073509, -0.12775829999998223),
+               mapTypeId: google.maps.MapTypeId.ROADMAP,
+               draggableCursor:'crosshair',
+               mapTypeControlOptions: {
+               	style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+               }
+            };
+            map = new google.maps.Map($('#map')[0], myOptions);
+            var oms = new OverlappingMarkerSpiderfier(map, {markersWontMove: true, keepSpiderfied: true});
+
+            var bounds = new google.maps.LatLngBounds();
+            var isClosed = false;
+            var poly = new google.maps.Polyline({ map: map, path: [], strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2 });
+            var polyMarkers = [];
+            var gMarkers = [];
+            var gMarkersInfo = {};
+            var locMarkers = {};
+
+            document.oncontextmenu = function() {return false;};
+
+            google.maps.event.addListener(map, 'click', function (clickEvent) {
+		        if (isClosed)
+		            return;
+		        var markerIndex = poly.getPath().length;
+		        var isFirstMarker = markerIndex === 0;
+		        var marker = new google.maps.Marker({
+                  map: map,
+                  position: clickEvent.latLng,
+                  draggable: true,
+                  icon: new google.maps.MarkerImage("http://maps.google.com/mapfiles/kml/pal4/icon49.png"),
+               });
+		        polyMarkers.push(marker);
+		        if (isFirstMarker) {
+		            google.maps.event.addListener(marker, 'click', function () {
+		                if (isClosed)
+		                    return;
+		                var path = poly.getPath();
+		                poly.setMap(null);
+		                poly = new google.maps.Polygon({
+		                	map: map,
+		                	path: path,
+		                	strokeColor: "#FF0000",
+		                	strokeOpacity: 0.0,
+		                	strokeWeight: 2,
+		                	fillColor: "#FF0000",
+		                	fillOpacity: 0.35 });
+		                isClosed = true;
+		            });
+		        }
+		        google.maps.event.addListener(marker, 'drag', function (dragEvent) {
+		            poly.getPath().setAt(markerIndex, dragEvent.latLng);
+		        });
+		        poly.getPath().push(clickEvent.latLng);
+		    });
+
+			$("#clearBtn").on('click', function() {
+				poly.setMap(null);
+				for (i=polyMarkers.length-1;i>=0;i--) {
+					polyMarkers[i].setMap(null);
+				}
+				isClosed = false;
+				poly = new google.maps.Polyline({ map: map, path: [], strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2 });
+            polyMarkers = [];
+            $('#exportLink').hide();
+			});
+
+         $("#exportMarkers").on('click', function() {
+            $('#exportLink').hide();
+            var markerIDs = [];
+            if (polyMarkers.length>0) {
+               for (var i=0;i<gMarkers.length;i++) {
+                  if (google.maps.geometry.poly.containsLocation(gMarkers[i].getPosition(),poly)) {
+                     markerIDs.push(gMarkersInfo[gMarkers[i].title]);
+                  }
+               }
+            } else {
+               for (var i=0;i<gMarkers.length;i++) {
+                  if (!gMarkers[i].getVisible()) {
+
+                  } else {
+                     markerIDs.push(gMarkersInfo[gMarkers[i].title]);
+                  }
+               }
+            }
+            var jsonString = JSON.stringify(markerIDs);
+            // console.log(jsonString);
+            $.ajax({
+               url: '/rightmove/getExcel.php',
+               data: {
+                  'json': jsonString
+               },
+               type: 'post',
+               success: function(output) {
+                  $('#exportLink').attr({target: '_blank', href  : 'http://s18748473.onlinehome-server.info/selected_area_output.xlsx'});
+                  $('#exportLink').show();
+               },
+               error: function(err) {
+                  // console.log(err);
+               }
+            });
+         });
+
+			$("#hideMarkers").on('click', function() {
+				var NoProperties = 0;
+				var SQM = 0;
+				var SQF = 0;
+				var SoldPrice = 0;
+				var SoldPrice_SQF = 0;
+				for (var i=0;i<gMarkers.length;i++) {
+					if (!google.maps.geometry.poly.containsLocation(gMarkers[i].getPosition(),poly)) {
+				        gMarkers[i].setMap(null);
+				    } else {
+				    	if (!isNaN(gMarkersInfo[gMarkers[i].title].SQM) && gMarkersInfo[gMarkers[i].title].SQM != '' &&
+				    		!isNaN(gMarkersInfo[gMarkers[i].title].SoldPrice) && gMarkersInfo[gMarkers[i].title].SoldPrice !='') {
+				    		NoProperties += 1;
+					    	SQM += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+					    	SoldPrice += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+				    	}
+				    }
+				}
+				var formatter = new Intl.NumberFormat('en-GB', {
+                style: 'currency',
+                currency: 'GBP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+            $( "#averages" ).empty();
+            $( "#averages" ).append( "<strong>All Properties</strong>:<hr/>" );
+            $( "#averages" ).append( "<strong>No. Of Properties</strong>: " + NoProperties + "<br/>" );
+            $( "#averages" ).append( "<strong>SQM</strong>: " + Math.round(SQM / NoProperties * 100) / 100 + "<br/>" );
+            $( "#averages" ).append( "<strong>SQF</strong>: " + Math.round(SQM / NoProperties * 10.764 * 100) / 100 + "<br/>" );
+            $( "#averages" ).append( "<strong>Sold Price</strong>: " + formatter.format(SoldPrice / NoProperties) + "<br/>" );
+            $( "#averages" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(SoldPrice / (SQM * 10.764)) + "<br/>" );
+        });
+
+        $.urlParam = function(name) {
+            var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+            return results[1] || 0;
+        };
+
+        $.ajax({
+            url: '/rightmove/getDB.php',
+            data: {user: $.urlParam('user')},
+            type: 'post',
+            success: function(output) {
+            	console.log('Output', output);
+                var bounds = new google.maps.LatLngBounds();
+                var NoProperties = 0;
+                var SQM = 0;
+                var SQF = 0;
+                var SoldPrice = 0;
+                var SoldPrice_SQF = 0;
+                gMarkers = [];
+                gMarkersInfo = {};
+                    for (var i=0; i<output.length; i++) {
+                        var markerInfo = {
+                            'id': output[i]["id"],
+                            'Address': output[i].Address,
+                            'Postcode': output[i].Postcode,
+                            'District': output[i].District,
+                            'Distance': output[i].Distance,
+                            'Duration': output[i].Duration,
+                            'PropertyType': output[i].PropertyType,
+                            'Tenure': output[i].Tenure,
+                            'DwellingType': output[i].DwellingType,
+                            'Beds': output[i].Beds,
+                            'SQM': output[i].SQM,
+                            'SQF': output[i].SQF,
+                            'SoldPrice': output[i].SoldPrice,
+                            'SoldPrice_SQF': output[i].SoldPrice_SQF,
+                            'SoldDate': output[i].SoldDate,
+                            'IndexSold': output[i].IndexSold,
+                            'CurrentIndexDate': output[i].CurrentIndexDate,
+                            'CurrentIndex': output[i].CurrentIndex,
+                            'Indexed_PSQFT': output[i].Indexed_PSQFT,
+                            'SoldPrice_SQF_Index': output[i].SoldPrice_SQF_Index,
+                            'Index_Diff': output[i].Index_Diff,
+                            'ClosestTube_Station': output[i].ClosestTube_Station,
+                            'ClosestTube_Route': output[i].ClosestTube_Route,
+                            'ClosestTube_Distance': output[i].ClosestTube_Distance,
+                            'ClosestRail_Station': output[i].ClosestRail_Station,
+                            'ClosestRail_Distance': output[i].ClosestRail_Distance,
+                            'Color': output[i].Color,
+                            'Measure': output[i].Measure
+                        };      // console.log(markerInfo);
+                        if (!isNaN(markerInfo.SQM)) {
+                            NoProperties += 1;
+                            SQM += parseFloat(markerInfo.SQM);
+                            SoldPrice += parseFloat(markerInfo.SoldPrice);
+                        }
+                        var formatter = new Intl.NumberFormat('en-GB', {
+                            style: 'currency',
+                            currency: 'GBP',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                        });
+                        $( "#averages" ).empty();
+                        $( "#averages" ).append( "<strong>All Properties</strong>:<hr/>" );
+                        $( "#averages" ).append( "<strong>No. Of Properties</strong>: " + NoProperties + "<br/>" );
+                        $( "#averages" ).append( "<strong>SQM</strong>: " + Math.round(SQM / NoProperties * 100) / 100 + "<br/>" );
+                        $( "#averages" ).append( "<strong>SQF</strong>: " + Math.round(SQM / NoProperties * 10.764 * 100) / 100 + "<br/>" );
+                        $( "#averages" ).append( "<strong>Sold Price</strong>: " + formatter.format(SoldPrice / NoProperties) + "<br/>" );
+                        $( "#averages" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(SoldPrice / (SQM * 10.764)) + "<br/>" );
+                        addMarkers(markerInfo);
+                    }
+                }
+            });
+
+         function toggleLegends(img) {
+            var id = img.getAttribute("id");
+            id = id.replace('legend_', '');
+            var rMin = parseInt(img.getAttribute("rng-min"));
+            var rMax = parseInt(img.getAttribute("rng-max"));
+
+            if (rMax <= 5000) {
+               filterField = 'PriceSQF';
+            } else {
+               filterField = 'Price';
+            }
+
+            for (var i=0;i<gMarkers.length;i++) {
+               if (filterField == 'Price') {
+                  if (parseInt(gMarkersInfo[gMarkers[i].title].SoldPrice) < rMin || parseInt(gMarkersInfo[gMarkers[i].title].SoldPrice) >= rMax) {
+                     var mrk = gMarkers[i];
+                     if (!mrk.getVisible()) {
+                        mrk.setVisible(true);
+                     } else {
+                        mrk.setVisible(false);
+                     }
+                  }
+               } else if (filterField == 'PriceSQF') {
+                  if (parseInt(gMarkersInfo[gMarkers[i].title].SoldPrice_SQF) < rMin || parseInt(gMarkersInfo[gMarkers[i].title].SoldPrice_SQF) >= rMax) {
+                     var mrk = gMarkers[i];
+                     if (!mrk.getVisible()) {
+                        mrk.setVisible(true);
+                     } else {
+                        mrk.setVisible(false);
+                     }
+                  }
+               }
+            }
+
+         }
+
+         function toggleLegend(img) {
+            var id = img.getAttribute("id");
+            id = id.replace('legend_', '');
+            var rMin = parseInt(img.getAttribute("rng-min"));
+            var rMax = parseInt(img.getAttribute("rng-max"));
+            var filterField = '';
+
+            $( "#averages_" + id ).toggle();
+
+            if (rMax <= 5000) {
+               filterField = 'PriceSQF';
+            } else {
+               filterField = 'Price';
+            }
+
+            var NoProperties = 0;
+            var SQM = 0;
+            var SQF = 0;
+            var SoldPrice = 0;
+            var SoldPrice_SQF = 0;
+
+            for (var i=0;i<gMarkers.length;i++) {
+               if (filterField == 'Price') {
+                  if (parseInt(gMarkersInfo[gMarkers[i].title].SoldPrice) >= rMin && parseInt(gMarkersInfo[gMarkers[i].title].SoldPrice) < rMax) {
+                     if (!isNaN(gMarkersInfo[gMarkers[i].title].SQM)) {
+                        NoProperties += 1;
+                        SQM += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+                        SoldPrice += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+                     }
+                  }
+               } else if (filterField == 'PriceSQF') {
+                  if (parseInt(gMarkersInfo[gMarkers[i].title].SoldPrice_SQF) >= rMin && parseInt(gMarkersInfo[gMarkers[i].title].SoldPrice_SQF) < rMax) {
+                     if (!isNaN(gMarkersInfo[gMarkers[i].title].SQM)) {
+                        NoProperties += 1;
+                        SQM += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+                        SoldPrice += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+                     }
+                  }
+               }
+            }
+
+            var formatter = new Intl.NumberFormat('en-GB', {
+               style: 'currency',
+               currency: 'GBP',
+               minimumFractionDigits: 0,
+               maximumFractionDigits: 0
+            });
+
+            SoldPrice_SQF += parseFloat(SoldPrice) / ( parseFloat(SQM) * 10.764 );
+
+            $( "#averages_" + id ).empty();
+            $( "#averages_" + id ).append( "<strong>No. Of Properties</strong>: " + NoProperties + "<br/>" );
+            $( "#averages_" + id ).append( "<strong>SQM</strong>: " + Math.round(SQM / NoProperties * 100) / 100 + "<br/>" );
+            $( "#averages_" + id ).append( "<strong>SQF</strong>: " + Math.round(SQM / NoProperties * 10.764 * 100) / 100 + "<br/>" );
+            $( "#averages_" + id ).append( "<strong>Sold Price</strong>: " + formatter.format(SoldPrice / NoProperties) + "<br/>" );
+            $( "#averages_" + id ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(SoldPrice_SQF)) + "<br/>" );
+
+         }
+
+         $.ajax({
+            url: '/rightmove/getLegend.php',
+            data: {user: $.urlParam('user')},
+            type: 'post',
+            success: function(output) {
+               var formatter = new Intl.NumberFormat('en-GB', {
+                  style: 'currency',
+                  currency: 'GBP',
+                  minimumFractionDigits: 0,
+               });
+               for (var i=0; i<output.length; i++) {
+                  var rMin = output[i]["price_min"];
+                  rMin = formatter.format(rMin);
+                  var rMax = output[i]["price_max"];
+                  rMax = formatter.format(rMax);
+                  var txtRange = rMin + ' - ' + rMax;
+                  var saleCategory = output[i]["color"];
+                  $( "#legend" ).append( "<img id='legend_" + i + "' alt='' src='http://maps.google.com/mapfiles/ms/icons/" + saleCategory + "-dot.png' rng-min='" + output[i]["price_min"] + "' rng-max='" + output[i]["price_max"] + "' />" + txtRange + "<br />" );
+                  $( "#legend" ).append( "<div id='averages_" + i + "' style='margin-left: 5px; display: none;'></div>" );
+                  $( "#legend_" + i + "" ).on('click', function() { toggleLegend(this) });
+                  $( "#legend_" + i + "" ).on('contextmenu', function() { toggleLegends(this) });
+               }
+               $( "#legend" ).append("<br/><br/>");
+            }
+         });
+
+         errorArray = [];
+
+         //will fire 20 ajax request at a time and other will keep in queue
+         var queuCounter = 0, setLimit = 20;
+
+         //keep count of added markers and update at top
+         totalAddedMarkers = 0;
+
+         //make an array of geocode keys to avoid the overlimit error
+         var geoCodKeys = [
+            'AIzaSyCF82XXUtT0vzMTcEPpTXvKQPr1keMNr_4',
+            'AIzaSyAYPw6oFHktAMhQqp34PptnkDEdmXwC3s0',
+            'AIzaSyAwd0OLvubYtKkEWwMe4Fe0DQpauX0pzlk',
+            'AIzaSyDF3F09RkYcibDuTFaINrWFBOG7ilCsVL0',
+            'AIzaSyC1dyD2kzPmZPmM4-oGYnIH_0x--0hVSY8',
+            'AIzaSyBeZ3JvSrcnnPeaK4zKM27mrhssr21T7bQ',
+            'AIzaSyAvb3P-FCRHLyZ-RXk3W2vWkFi-nV9WBks',
+            'AIzaSyDiYtd1C1eJtjekAbY2jVXVwj90stSL110',
+            'AIzaSyDmQ4szyvUTz_KRaZXwoff9LIsVsQH23ng',
+            'AIzaSyBSrA2SJQI6nGNHeCb6Cd4oFvO2xBkVnJQ',
+            'AIzaSyCwN78-jrnXSzvxSsL9y0dXcggCiqILXco',
+            'AIzaSyCHOx9A1HwUExOjLAbyNNynW40__Ggm1xA',
+            'AIzaSyB-LeQcClaqX4FSJG9K3xaYHpLXE8OdKJM',
+            'AIzaSyAtZTjRuT9gms-YL2_Lfbn6UX8zeDxi2gk',
+            'AIzaSyCW10Z_y4mEsyfU9BcazsLz5yGQjLyS3tc',
+            'AIzaSyBEfcoGrBlDh9m_KCMHqjAjPF2WU6fnv88'
+         ];
+
+         //funciton to add marker
+         function addMarkers(markerInfo, queKey) {
+
+            var key = jQuery.rand(geoCodKeys);
+            var url = 'https://maps.googleapis.com/maps/api/geocode/json?key='+key+'&address='+markerInfo.Postcode+'&sensor=false';
+            var qyName = '';
+            if( queKey ) {
+               qyName = queKey;
+            } else {
+               qyName = 'MyQueue'+queuCounter;
+            }
+
+            $.ajaxq (qyName, {
+
+               url: url,
+               dataType: 'json'
+
+            }).done(function( data ) {
+
+            	// console.log(markerInfo.Address);
+            	// console.log(data);
+
+            	var address = getParameterByName('address', this.url);
+            	var index = errorArray.indexOf(address);
+
+            	try {
+
+               	var p = data.results[0].geometry.location;
+               	var latlng = new google.maps.LatLng(p.lat, p.lng);
+
+               	var marker = new google.maps.Marker({
+                  	position: latlng,
+                  	map: map,
+                  	animation: google.maps.Animation.DROP,
+                  	icon: new google.maps.MarkerImage("http://maps.google.com/mapfiles/ms/icons/" + markerInfo.Color + "-dot.png"),
+                  	title: markerInfo.Address
+               	});
+               	oms.addMarker(marker);
+
+               	var markerId = markerInfo['id'];
+
+               	gMarkers.push(marker);
+               	gMarkersInfo[marker.title] = markerInfo;
+
+               	var formatter = new Intl.NumberFormat('en-GB', {
+                  	style: 'currency',
+                  	currency: 'GBP',
+                  	minimumFractionDigits: 0,
+               	});
+
+                  var content = document.createElement('div');
+                  var text = "<h4>" + markerInfo.Address + "</h4><hr>";
+                  text += "<strong>" + markerInfo.Postcode + "</strong><br>";
+                  if (markerInfo.District) {
+                     text += "<strong>District</strong>: " + markerInfo.District + "<br>";
+                  }
+                  if (markerInfo.Distance) {
+                     text += "<strong>Distance To Post Code</strong>: " + markerInfo.Distance + ' ' + markerInfo.Measure + "<br>";
+                  }
+                  text += "<strong>Type</strong>: " + markerInfo.PropertyType + " / " + markerInfo.Tenure + "<br>";
+                  if (markerInfo.DwellingType) {
+                     text += "<strong>Dwelling Type</strong>: " + markerInfo.DwellingType + "<br>";
+                  }
+                  if (markerInfo.Beds) {
+                     text += "<strong>Bedrooms</strong>: " + markerInfo.Beds + "<br>";
+                  }
+                  text += "<strong>SQM/SQF</strong>: " + markerInfo.SQM + " / " + markerInfo.SQF + "<br>";
+                  if (markerInfo.SoldPrice) {
+                     text += "<strong>Sold</strong>: " + formatter.format(markerInfo.SoldPrice) + "<br>";
+                  }
+                  if (markerInfo.SoldDate_SQF) {
+                     text += "<strong>&pound; / SQF</strong>: " + formatter.format(markerInfo.SoldDate_SQF) + "<br>";
+                  }
+                  if (markerInfo.SoldDate) {
+                     text += "<strong>Sold Date</strong>: " + markerInfo.SoldDate + "<br>";
+                  }
+                  if (markerInfo.ClosestTube_Station) {
+                     text += "<strong>Closest Tube Station</strong>: " + markerInfo.ClosestTube_Station + "<br>";
+                  }
+                  content.innerHTML = text;
+
+                  // var infowindow = new google.maps.InfoWindow();
+                  // oms.addListener('click', function(marker, event) {
+                  //   infowindow.setContent(content);
+                  //   infowindow.open(map, marker);
+                  // });
+
+                  var infowindow = new google.maps.InfoWindow({
+                     content: content
+                  });
+                  google.maps.event.addListener(marker, 'click', function() {
+                     infowindow.open(map, marker);
+                  });
+
+                  bounds.extend(latlng);
+                  map.fitBounds(bounds);
+                  totalAddedMarkers ++;
+
+                  if (index > -1) {
+                     errorArray.splice(index, 1);
+                  }
+
+               } catch(e) {
+                  if(data.status = 'ZERO_RESULTS')
+                     return false;
+                  //on error call add marker function for same address
+                  //and keep in Error ajax queue
+                  addMarkers( markerInfo, 'Error' );
+                  if (index == -1) {
+                     errorArray.push( address );
+                  }
+               }
+            }, function(err) {
+            	// console.log(err);
+            });
+
+            //mentain ajax queue set
+            queuCounter++;
+            if( queuCounter == setLimit ){
+               queuCounter = 0;
+            }
+         }
+
+         //function get url parameter from url string
+         getParameterByName = function ( name,href ) {
+            name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+            var regexS = "[\\?&]"+name+"=([^&#]*)";
+            var regex = new RegExp( regexS );
+            var results = regex.exec( href );
+            if( results == null )
+            return "";
+            else
+            return decodeURIComponent(results[1].replace(/\+/g, " "));
+         }
+
+      });
+
+      </script>
+   </head>
+<body>
+<table style="width: 100%; height: 98%;">
+<tr>
+    <td style="width: 90%;">
+        <div id="map"></div>
+    </td>
+    <td valign="top">
+		<div id="legend"></div>
+		<div id="averages" style="padding: 5px;"></div>
+      <div id="controls" style="padding: 5px;">
+         <br><br>
+         <button type="button" class="btn btn-danger btn-block" id='clearBtn'>Remove Area</button>
+         <button type="button" class="btn btn-success btn-block" id='hideMarkers'>Filter Markers</button>
+         <button type="button" class="btn btn-primary btn-block" onclick="location.reload();">Reset All</button>
+         <button type="button" class="btn btn-warning btn-block" id='exportMarkers'>Export Excel</button>
+         <a id='exportLink' href="#" style="display: none;">Click to download</button>
+      </div>
+    </td>
+</tr>
+</table>
+</body>
+</html>

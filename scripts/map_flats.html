@@ -1,0 +1,1220 @@
+<!doctype html>
+<html>
+<head>
+	<style type="text/css">
+		html, body {
+			height: 100%;
+		}
+		#map {
+			height:100%;
+			width:100%;
+			display:block;
+			margin: 0 auto;
+		}
+		hr {
+			margin-top: 5px !important;
+			margin-bottom: 0 !important;
+		}
+	</style>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
+	<link rel="stylesheet" href="jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<script type="text/javascript" src="ajaxq.js"></script>
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiYtd1C1eJtjekAbY2jVXVwj90stSL110"></script>
+	<script type="text/javascript" src="oms.min.js"></script>
+	<script type="text/javascript">
+
+		(function($) {
+			$.rand = function(arg) {
+				if ($.isArray(arg)) {
+					return arg[$.rand(arg.length)];
+				} else if (typeof arg === "number") {
+					return Math.floor(Math.random() * arg);
+				} else {
+					return 4;  // chosen by fair dice roll
+				}
+			};
+		})(jQuery);
+
+		$(document).ready(function () {
+			var map;
+			var elevatzor;
+			var myOptions = {
+				zoom: 0,
+				center: new google.maps.LatLng(51.5073509, -0.12775829999998223),
+				mapTypeId: google.maps.MapTypeId.ROADMAP
+			};
+			map = new google.maps.Map($('#map')[0], myOptions);
+			var oms = new OverlappingMarkerSpiderfier(map, {keepSpiderfied: true});
+
+			var bounds = new google.maps.LatLngBounds();
+			var isClosed = false;
+			var poly = new google.maps.Polyline({ map: map, path: [], strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2 });
+			var polyMarkers = [];
+			var gMarkers = [];
+			var gMarkersInfo = {};
+			var allMarkers = [];
+
+			errorArray = [];
+			//will fire 20 ajax request at a time and other will keep in queue
+			var queuCounter = 0, setLimit = 20;
+			//keep count of added markers and update at top
+			totalAddedMarkers = 0;
+			//make an array of geocode keys to avoid the overlimit error
+			var geoCodKeys = [
+				'AIzaSyCF82XXUtT0vzMTcEPpTXvKQPr1keMNr_4',
+				'AIzaSyAYPw6oFHktAMhQqp34PptnkDEdmXwC3s0',
+				'AIzaSyAwd0OLvubYtKkEWwMe4Fe0DQpauX0pzlk',
+				'AIzaSyDF3F09RkYcibDuTFaINrWFBOG7ilCsVL0',
+				'AIzaSyC1dyD2kzPmZPmM4-oGYnIH_0x--0hVSY8',
+				'AIzaSyBeZ3JvSrcnnPeaK4zKM27mrhssr21T7bQ',
+				'AIzaSyAvb3P-FCRHLyZ-RXk3W2vWkFi-nV9WBks',
+				'AIzaSyDiYtd1C1eJtjekAbY2jVXVwj90stSL110',
+				'AIzaSyDmQ4szyvUTz_KRaZXwoff9LIsVsQH23ng',
+				'AIzaSyBSrA2SJQI6nGNHeCb6Cd4oFvO2xBkVnJQ',
+				'AIzaSyCwN78-jrnXSzvxSsL9y0dXcggCiqILXco',
+				'AIzaSyCHOx9A1HwUExOjLAbyNNynW40__Ggm1xA',
+				'AIzaSyB-LeQcClaqX4FSJG9K3xaYHpLXE8OdKJM',
+				'AIzaSyAtZTjRuT9gms-YL2_Lfbn6UX8zeDxi2gk',
+				'AIzaSyCW10Z_y4mEsyfU9BcazsLz5yGQjLyS3tc',
+				'AIzaSyBEfcoGrBlDh9m_KCMHqjAjPF2WU6fnv88'
+			];
+
+			google.maps.event.addListener(map, 'click', function (clickEvent) {
+				if (isClosed)
+					return;
+				var markerIndex = poly.getPath().length;
+				var isFirstMarker = markerIndex === 0;
+				var marker = new google.maps.Marker({
+					map: map,
+					position: clickEvent.latLng,
+					draggable: true,
+					icon: new google.maps.MarkerImage("http://maps.google.com/mapfiles/kml/pal4/icon49.png"),
+				});
+				polyMarkers.push(marker);
+				if (isFirstMarker) {
+					google.maps.event.addListener(marker, 'click', function () {
+						if (isClosed)
+							return;
+						var path = poly.getPath();
+						poly.setMap(null);
+						poly = new google.maps.Polygon({
+							map: map,
+							path: path,
+							strokeColor: "#FF0000",
+							strokeOpacity: 0.0,
+							strokeWeight: 2,
+							fillColor: "#FF0000",
+							fillOpacity: 0.35
+						});
+						isClosed = true;
+					});
+				}
+				google.maps.event.addListener(marker, 'drag', function (dragEvent) {
+					poly.getPath().setAt(markerIndex, dragEvent.latLng);
+				});
+				poly.getPath().push(clickEvent.latLng);
+			});
+
+			function toggleLegend(beds) {
+				var source_img;
+				var new_src;
+				var isHide;
+				if (beds == 1) {
+					source_img= $("#bed_1").attr('src');
+					if (source_img.indexOf('grey') == -1) {
+						new_src = source_img.replace('orange', 'grey');
+						$("#bed_1").attr('src', new_src);
+						isHide = true;
+					} else {
+						new_src = source_img.replace('grey', 'orange');
+						$("#bed_1").attr('src', new_src);
+						isHide = true;
+					}
+				} else if (beds == 2) {
+					source_img= $("#bed_2").attr('src');
+					if (source_img.indexOf('grey') == -1) {
+						new_src = source_img.replace('blue', 'grey');
+						$("#bed_2").attr('src', new_src);
+						isHide = true;
+					} else {
+						new_src = source_img.replace('grey', 'blue');
+						$("#bed_2").attr('src', new_src);
+						isHide = true;
+					}
+				} else if (beds == 3) {
+					source_img= $("#bed_3").attr('src');
+					if (source_img.indexOf('grey') == -1) {
+						new_src = source_img.replace('green', 'grey');
+						$("#bed_3").attr('src', new_src);
+						isHide = true;
+					} else {
+						new_src = source_img.replace('grey', 'green');
+						$("#bed_3").attr('src', new_src);
+						isHide = true;
+					}
+				} else if (beds == 4) {
+					source_img= $("#bed_4").attr('src');
+					if (source_img.indexOf('grey') == -1) {
+						new_src = source_img.replace('red', 'grey');
+						$("#bed_4").attr('src', new_src);
+						isHide = true;
+					} else {
+						new_src = source_img.replace('grey', 'red');
+						$("#bed_4").attr('src', new_src);
+						isHide = true;
+					}
+				}
+				for (var i=0;i<gMarkers.length;i++) {
+					var m_beds = parseInt(gMarkersInfo[gMarkers[i].title].Beds);
+					if ((beds < 4 && beds == m_beds) || (beds == 4 && m_beds >= beds)) {
+						var mrk = gMarkers[i];
+						if (!mrk.getVisible()) {
+					      	mrk.setVisible(true);
+					    } else {
+					      	mrk.setVisible(false);
+					    }
+					}
+				}
+				var avg = {
+					'NoProperties': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					},
+					'SQM': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					},
+					'SQF': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					},
+					'SoldPrice': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					},
+					'SoldPrice_SQF': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					}
+				};
+				for (var i=0;i<gMarkers.length;i++) {
+					if (!isNaN(gMarkersInfo[gMarkers[i].title].SQM)) {
+						var mrk = gMarkers[i];
+						if (mrk.getVisible()) {
+							var m_beds = parseInt(gMarkersInfo[gMarkers[i].title].Beds);
+							if (m_beds == 1) {
+								avg.NoProperties.bed_1 += 1;
+								avg.SQM.bed_1 += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+								avg.SoldPrice.bed_1 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+								avg.SoldPrice_SQF.bed_1 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+							} else if (m_beds == 2) {
+								avg.NoProperties.bed_2 += 1;
+								avg.SQM.bed_2 += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+								avg.SoldPrice.bed_2 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+								avg.SoldPrice_SQF.bed_2 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+							} else if (m_beds == 3) {
+								avg.NoProperties.bed_3 += 1;
+								avg.SQM.bed_3 += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+								avg.SoldPrice.bed_3 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+								avg.SoldPrice_SQF.bed_3 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+							} else if (m_beds >= 4) {
+								avg.NoProperties.bed_4 += 1;
+								avg.SQM.bed_4 += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+								avg.SoldPrice.bed_4 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+								avg.SoldPrice_SQF.bed_4 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+							}
+							avg.NoProperties.all_beds += 1;
+							avg.SQM.all_beds += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+							avg.SoldPrice.all_beds += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+							avg.SoldPrice_SQF.all_beds += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+						}
+					}
+				}
+				var formatter = new Intl.NumberFormat('en-GB', {
+					style: 'currency',
+					currency: 'GBP',
+					minimumFractionDigits: 0,
+					maximumFractionDigits: 0
+				});
+
+				$( "#averages" ).empty();
+				$( "#averages" ).append( "<hr><strong>All Properties</strong>:" );
+				$( "#averages" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.all_beds + "<br/>" );
+				$( "#averages" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.all_beds / avg.NoProperties.all_beds * 100) / 100 + "<br/>" );
+				$( "#averages" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.all_beds / avg.NoProperties.all_beds * 10.764 * 100) / 100 + "<br/>" );
+				$( "#averages" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.all_beds / avg.NoProperties.all_beds) + "<br/>" );
+				$( "#averages" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.all_beds / avg.NoProperties.all_beds)) + "<br/>" );
+
+				if (avg.NoProperties.bed_1 > 0) {
+					$( "#averages_1" ).empty();
+					$( "#averages_1" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_1 + "<br/>" );
+					$( "#averages_1" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_1 / avg.NoProperties.bed_1 * 100) / 100 + "<br/>" );
+					$( "#averages_1" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_1 / avg.NoProperties.bed_1 * 10.764 * 100) / 100 + "<br/>" );
+					$( "#averages_1" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_1 / avg.NoProperties.bed_1) + "<br/>" );
+					$( "#averages_1" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_1 / avg.NoProperties.bed_1)) + "<br/>" );
+				} else {
+					$( "#averages_1" ).empty();
+				}
+
+				if (avg.NoProperties.bed_2 > 0) {
+					$( "#averages_2" ).empty();
+					$( "#averages_2" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_2 + "<br/>" );
+					$( "#averages_2" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_2 / avg.NoProperties.bed_2 * 100) / 100 + "<br/>" );
+					$( "#averages_2" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_2 / avg.NoProperties.bed_2 * 10.764 * 100) / 100 + "<br/>" );
+					$( "#averages_2" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_2 / avg.NoProperties.bed_2) + "<br/>" );
+					$( "#averages_2" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_2 / avg.NoProperties.bed_2)) + "<br/>" );
+				} else {
+					$( "#averages_2" ).empty();
+				}
+
+				if (avg.NoProperties.bed_3 > 0) {
+					$( "#averages_3" ).empty();
+					$( "#averages_3" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_3 + "<br/>" );
+					$( "#averages_3" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_3 / avg.NoProperties.bed_3 * 100) / 100 + "<br/>" );
+					$( "#averages_3" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_3 / avg.NoProperties.bed_3 * 10.764 * 100) / 100 + "<br/>" );
+					$( "#averages_3" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_3 / avg.NoProperties.bed_3) + "<br/>" );
+					$( "#averages_3" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_3 / avg.NoProperties.bed_3)) + "<br/>" );
+				} else {
+					$( "#averages_3" ).empty();
+				}
+
+				if (avg.NoProperties.bed_4 > 0) {
+					$( "#averages_4" ).empty();
+					$( "#averages_4" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_4 + "<br/>" );
+					$( "#averages_4" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_4 / avg.NoProperties.bed_4 * 100) / 100 + "<br/>" );
+					$( "#averages_4" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_4 / avg.NoProperties.bed_4 * 10.764 * 100) / 100 + "<br/>" );
+					$( "#averages_4" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_4 / avg.NoProperties.bed_4) + "<br/>" );
+					$( "#averages_4" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_4 / avg.NoProperties.bed_4)) + "<br/>" );
+				} else {
+					$( "#averages_4" ).empty();
+				}
+
+			}
+
+			$("#clearBtn").on('click', function() {
+				poly.setMap(null);
+				for (i=polyMarkers.length-1;i>=0;i--) {
+					polyMarkers[i].setMap(null);
+				}
+				isClosed = false;
+				poly = new google.maps.Polyline({ map: map, path: [], strokeColor: "#FF0000", strokeOpacity: 1.0, strokeWeight: 2 });
+				polyMarkers = [];
+			});
+
+			$("#hideMarkers").on('click', function() {
+				console.log("Filter");
+				var Beds_0 = [];
+				var Beds_1 = [];
+				var Beds_2 = [];
+				var Beds_3 = [];
+				var Beds_4 = [];
+				for (var i=0;i<gMarkers.length;i++) {
+					if (!google.maps.geometry.poly.containsLocation(gMarkers[i].getPosition(),poly)) {
+						gMarkers[i].setVisible(false);
+					} else {
+						if (gMarkersInfo[gMarkers[i].title].Beds) {
+							if (parseInt(gMarkersInfo[gMarkers[i].title].Beds) == 1) {
+								if (Beds_1.indexOf(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice)) == -1)
+									Beds_1.push(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice));
+							} else if (parseInt(gMarkersInfo[gMarkers[i].title].Beds) == 2) {
+								if (Beds_2.indexOf(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice)) == -1)
+									Beds_2.push(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice));
+							} else if (parseInt(gMarkersInfo[gMarkers[i].title].Beds) == 3) {
+								if (Beds_3.indexOf(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice)) == -1)
+									Beds_3.push(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice));
+							} else if (parseInt(gMarkersInfo[gMarkers[i].title].Beds) >= 4) {
+								if (Beds_4.indexOf(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice)) == -1)
+									Beds_4.push(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice));
+							}
+						} else {
+							Beds_0.push(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice));
+						}
+					}
+				}
+				Beds_1.sort();
+				Beds_1.reverse();
+				Beds_2.sort();
+				Beds_2.reverse();
+				Beds_3.sort();
+				Beds_3.reverse();
+				Beds_4.sort();
+				Beds_4.reverse();
+				for (var i=0;i<gMarkers.length;i++) {
+					if (google.maps.geometry.poly.containsLocation(gMarkers[i].getPosition(),poly)) {
+						var markerColor = 'grey';
+						var markerIndex;
+						if (gMarkersInfo[gMarkers[i].title].Beds) {
+							if (parseInt(gMarkersInfo[gMarkers[i].title].Beds) == 1) {
+								markerColor = 'orange';
+								markerIndex = Beds_1.indexOf(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice)) + 1;
+							} else if (parseInt(gMarkersInfo[gMarkers[i].title].Beds) == 2) {
+								markerColor = 'blue';
+								markerIndex = Beds_2.indexOf(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice)) + 1;
+							} else if (parseInt(gMarkersInfo[gMarkers[i].title].Beds) == 3) {
+								markerColor = 'green';
+								markerIndex = Beds_3.indexOf(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice)) + 1;
+							} else if (parseInt(gMarkersInfo[gMarkers[i].title].Beds) >= 4) {
+								markerColor = 'red';
+								markerIndex = Beds_4.indexOf(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice)) + 1;
+							}
+						} else {
+							markerColor = 'grey';
+							markerIndex = Beds_0.indexOf(parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice)) + 1;
+						}
+						if (markerIndex > 1000)
+							markerIndex = 1000;
+						gMarkers[i].setIcon("http://s18748473.onlinehome-server.info/rightmove/icons/" + markerColor + "/Number_" + markerIndex + ".png");
+					}
+				}
+
+				var avg = {
+					'NoProperties': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					},
+					'SQM': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					},
+					'SQF': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					},
+					'SoldPrice': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					},
+					'SoldPrice_SQF': {
+						'bed_1': 0,
+						'bed_2': 0,
+						'bed_3': 0,
+						'bed_4': 0,
+						'all_beds': 0
+					}
+				};
+				for (var i=0;i<gMarkers.length;i++) {
+					if (!isNaN(gMarkersInfo[gMarkers[i].title].SQM)) {
+						var mrk = gMarkers[i];
+						if (mrk.getVisible()) {
+							var m_beds = parseInt(gMarkersInfo[gMarkers[i].title].Beds);
+							if (m_beds == 1) {
+								avg.NoProperties.bed_1 += 1;
+								avg.SQM.bed_1 += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+								avg.SoldPrice.bed_1 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+								avg.SoldPrice_SQF.bed_1 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+							} else if (m_beds == 2) {
+								avg.NoProperties.bed_2 += 1;
+								avg.SQM.bed_2 += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+								avg.SoldPrice.bed_2 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+								avg.SoldPrice_SQF.bed_2 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+							} else if (m_beds == 3) {
+								avg.NoProperties.bed_3 += 1;
+								avg.SQM.bed_3 += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+								avg.SoldPrice.bed_3 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+								avg.SoldPrice_SQF.bed_3 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+							} else if (m_beds >= 4) {
+								avg.NoProperties.bed_4 += 1;
+								avg.SQM.bed_4 += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+								avg.SoldPrice.bed_4 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+								avg.SoldPrice_SQF.bed_4 += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+							}
+							avg.NoProperties.all_beds += 1;
+							avg.SQM.all_beds += parseFloat(gMarkersInfo[gMarkers[i].title].SQM);
+							avg.SoldPrice.all_beds += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice);
+							avg.SoldPrice_SQF.all_beds += parseFloat(gMarkersInfo[gMarkers[i].title].SoldPrice) / ( parseFloat(gMarkersInfo[gMarkers[i].title].SQM) * 10.764 );
+						}
+					}
+				}
+				var formatter = new Intl.NumberFormat('en-GB', {
+					style: 'currency',
+					currency: 'GBP',
+					minimumFractionDigits: 0,
+					maximumFractionDigits: 0
+				});
+
+				$( "#averages" ).empty();
+				$( "#averages" ).append( "<strong>All Properties</strong>:<hr/>" );
+				$( "#averages" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.all_beds + "<br/>" );
+				$( "#averages" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.all_beds / avg.NoProperties.all_beds * 100) / 100 + "<br/>" );
+				$( "#averages" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.all_beds / avg.NoProperties.all_beds * 10.764 * 100) / 100 + "<br/>" );
+				$( "#averages" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.all_beds / avg.NoProperties.all_beds) + "<br/>" );
+				$( "#averages" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.all_beds / avg.NoProperties.all_beds)) + "<br/>" );
+
+				if (avg.NoProperties.bed_1 > 0) {
+					$( "#averages_1" ).empty();
+					$( "#averages_1" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_1 + "<br/>" );
+					$( "#averages_1" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_1 / avg.NoProperties.bed_1 * 100) / 100 + "<br/>" );
+					$( "#averages_1" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_1 / avg.NoProperties.bed_1 * 10.764 * 100) / 100 + "<br/>" );
+					$( "#averages_1" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_1 / avg.NoProperties.bed_1) + "<br/>" );
+					$( "#averages_1" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_1 / avg.NoProperties.bed_1)) + "<br/>" );
+				} else {
+					$( "#averages_1" ).empty();
+				}
+
+				if (avg.NoProperties.bed_2 > 0) {
+					$( "#averages_2" ).empty();
+					$( "#averages_2" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_2 + "<br/>" );
+					$( "#averages_2" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_2 / avg.NoProperties.bed_2 * 100) / 100 + "<br/>" );
+					$( "#averages_2" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_2 / avg.NoProperties.bed_2 * 10.764 * 100) / 100 + "<br/>" );
+					$( "#averages_2" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_2 / avg.NoProperties.bed_2) + "<br/>" );
+					$( "#averages_2" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_2 / avg.NoProperties.bed_2)) + "<br/>" );
+				} else {
+					$( "#averages_2" ).empty();
+				}
+
+				if (avg.NoProperties.bed_3 > 0) {
+					$( "#averages_3" ).empty();
+					$( "#averages_3" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_3 + "<br/>" );
+					$( "#averages_3" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_3 / avg.NoProperties.bed_3 * 100) / 100 + "<br/>" );
+					$( "#averages_3" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_3 / avg.NoProperties.bed_3 * 10.764 * 100) / 100 + "<br/>" );
+					$( "#averages_3" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_3 / avg.NoProperties.bed_3) + "<br/>" );
+					$( "#averages_3" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_3 / avg.NoProperties.bed_3)) + "<br/>" );
+				} else {
+					$( "#averages_3" ).empty();
+				}
+
+				if (avg.NoProperties.bed_4 > 0) {
+					$( "#averages_4" ).empty();
+					$( "#averages_4" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_4 + "<br/>" );
+					$( "#averages_4" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_4 / avg.NoProperties.bed_4 * 100) / 100 + "<br/>" );
+					$( "#averages_4" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_4 / avg.NoProperties.bed_4 * 10.764 * 100) / 100 + "<br/>" );
+					$( "#averages_4" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_4 / avg.NoProperties.bed_4) + "<br/>" );
+					$( "#averages_4" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_4 / avg.NoProperties.bed_4)) + "<br/>" );
+				} else {
+					$( "#averages_4" ).empty();
+				}
+
+			});
+
+			$.urlParam = function(name) {
+	            var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+	            return results[1] || 0;
+            };
+
+			$.ajax({
+				url: '/rightmove/getDB.php',
+				data: {user: $.urlParam('user')},
+				type: 'post',
+				success: function(output) {
+					var bounds = new google.maps.LatLngBounds();
+					var Beds_0 = [];
+					var Beds_1 = [];
+					var Beds_2 = [];
+					var Beds_3 = [];
+					var Beds_4 = [];
+					for (var i=0; i<output.length; i++) {
+						if (output[i].Beds) {
+							if (parseInt(output[i].Beds) == 1) {
+								if (Beds_1.indexOf(output[i].SoldPrice) == -1)
+									Beds_1.push(parseFloat(output[i].SoldPrice));
+							} else if (parseInt(output[i].Beds) == 2) {
+								if (Beds_2.indexOf(output[i].SoldPrice) == -1)
+									Beds_2.push(parseFloat(output[i].SoldPrice));
+							} else if (parseInt(output[i].Beds) == 3) {
+								if (Beds_3.indexOf(output[i].SoldPrice) == -1)
+									Beds_3.push(parseFloat(output[i].SoldPrice));
+							} else if (parseInt(output[i].Beds) >= 4) {
+								if (Beds_4.indexOf(output[i].SoldPrice) == -1)
+									Beds_4.push(parseFloat(output[i].SoldPrice));
+							}
+						} else {
+							Beds_0.push(parseFloat(output[i].SoldPrice));
+						}
+					}
+					Beds_1.sort();
+					Beds_1.reverse();
+					Beds_2.sort();
+					Beds_2.reverse();
+					Beds_3.sort();
+					Beds_3.reverse();
+					Beds_4.sort();
+					Beds_4.reverse();
+					$( "#legend" ).empty();
+					if (Beds_1.length > 0) {
+						$( "#legend" ).append( "<hr>" );
+						$( "#legend" ).append( "<img id='bed_1' alt='' src='http://s18748473.onlinehome-server.info/rightmove/icons/Orange.png'/> 1 Bed Flats<br />" );
+						$( "#legend" ).append( "<div id='averages_1'></div>" );
+						$( "#bed_1" ).on('click', function() { toggleLegend(1) });
+					}
+					if (Beds_2.length > 0) {
+						$( "#legend" ).append( "<hr>" );
+						$( "#legend" ).append( "<img id='bed_2' alt='' src='http://s18748473.onlinehome-server.info/rightmove/icons/Blue.png'/> 2 Bed Flats<br />" );
+						$( "#legend" ).append( "<div id='averages_2'></div>" );
+						$( "#bed_2" ).on('click', function() { toggleLegend(2) });
+					}
+					if (Beds_3.length > 0) {
+						$( "#legend" ).append( "<hr>" );
+						$( "#legend" ).append( "<img id='bed_3' alt='' src='http://s18748473.onlinehome-server.info/rightmove/icons/Green.png'/> 3 Bed Flats<br />" );
+						$( "#legend" ).append( "<div id='averages_3'></div>" );
+						$( "#bed_3" ).on('click', function() { toggleLegend(3) });
+					}
+					if (Beds_4.length > 0) {
+						$( "#legend" ).append( "<hr>" );
+						$( "#legend" ).append( "<img id='bed_4' alt='' src='http://s18748473.onlinehome-server.info/rightmove/icons/Red.png'/> 4+ Bed Flats<br />" );
+						$( "#legend" ).append( "<div id='averages_4'></div>" );
+						$( "#bed_4" ).on('click', function() { toggleLegend(4) });
+					}
+					$( "#legend" ).append("<br>");
+
+					gMarkers = [];
+					gMarkersInfo = {};
+					var avg = {
+						'NoProperties': {
+							'bed_1': 0,
+							'bed_2': 0,
+							'bed_3': 0,
+							'bed_4': 0,
+							'all_beds': 0
+						},
+						'SQM': {
+							'bed_1': 0,
+							'bed_2': 0,
+							'bed_3': 0,
+							'bed_4': 0,
+							'all_beds': 0
+						},
+						'SQF': {
+							'bed_1': 0,
+							'bed_2': 0,
+							'bed_3': 0,
+							'bed_4': 0,
+							'all_beds': 0
+						},
+						'SoldPrice': {
+							'bed_1': 0,
+							'bed_2': 0,
+							'bed_3': 0,
+							'bed_4': 0,
+							'all_beds': 0
+						},
+						'SoldPrice_SQF': {
+							'bed_1': 0,
+							'bed_2': 0,
+							'bed_3': 0,
+							'bed_4': 0,
+							'all_beds': 0
+						}
+					};
+
+					for (var i=0; i<output.length; i++) {
+						if (output[i].Beds != '') {
+							var markerColor = 'grey';
+							var markerIndex;
+							if (parseInt(output[i].Beds) == 1) {
+								markerColor = 'orange';
+								markerIndex = Beds_1.indexOf(parseFloat(output[i].SoldPrice)) + 1;
+							} else if (parseInt(output[i].Beds) == 2) {
+								markerColor = 'blue';
+								markerIndex = Beds_2.indexOf(parseFloat(output[i].SoldPrice)) + 1;
+							} else if (parseInt(output[i].Beds) == 3) {
+								markerColor = 'green';
+								markerIndex = Beds_3.indexOf(parseFloat(output[i].SoldPrice)) + 1;
+							} else if (parseInt(output[i].Beds) >= 4) {
+								markerColor = 'red';
+								markerIndex = Beds_4.indexOf(parseFloat(output[i].SoldPrice)) + 1;
+							}
+							if (markerIndex > 1000)
+								markerIndex = 1000;
+							var markerInfo = {
+								'id': output[i]["id"],
+								'Address': output[i].Address,
+								'Postcode': output[i].Postcode,
+								'District': output[i].District,
+								'Distance': output[i].Distance,
+								'Duration': output[i].Duration,
+								'PropertyType': output[i].PropertyType,
+								'Tenure': output[i].Tenure,
+								'DwellingType': output[i].DwellingType,
+								'Beds': output[i].Beds,
+								'SQM': output[i].SQM,
+								'SQF': output[i].SQF,
+								'SoldPrice': output[i].SoldPrice,
+								'SoldPrice_SQF': output[i].SoldPrice_SQF,
+								'SoldDate': output[i].SoldDate,
+								'IndexSold': output[i].IndexSold,
+								'CurrentIndexDate': output[i].CurrentIndexDate,
+								'CurrentIndex': output[i].CurrentIndex,
+								'Indexed_PSQFT': output[i].Indexed_PSQFT,
+								'SoldPrice_SQF_Index': output[i].SoldPrice_SQF_Index,
+								'Index_Diff': output[i].Index_Diff,
+								'ClosestTube_Station': output[i].ClosestTube_Station,
+								'ClosestTube_Route': output[i].ClosestTube_Route,
+								'ClosestTube_Distance': output[i].ClosestTube_Distance,
+								'ClosestRail_Station': output[i].ClosestRail_Station,
+								'ClosestRail_Distance': output[i].ClosestRail_Distance,
+								'Color': markerColor,
+								'Measure': output[i].Measure,
+								'Ranking': markerIndex
+							};
+							var m_beds = parseInt(markerInfo.Beds);
+							if (m_beds == 1) {
+								avg.NoProperties.bed_1 += 1;
+								avg.SQM.bed_1 += parseFloat(markerInfo.SQM);
+								avg.SoldPrice.bed_1 += parseFloat(markerInfo.SoldPrice);
+								avg.SoldPrice_SQF.bed_1 += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+							} else if (m_beds == 2) {
+								avg.NoProperties.bed_2 += 1;
+								avg.SQM.bed_2 += parseFloat(markerInfo.SQM);
+								avg.SoldPrice.bed_2 += parseFloat(markerInfo.SoldPrice);
+								avg.SoldPrice_SQF.bed_2 += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+							} else if (m_beds == 3) {
+								avg.NoProperties.bed_3 += 1;
+								avg.SQM.bed_3 += parseFloat(markerInfo.SQM);
+								avg.SoldPrice.bed_3 += parseFloat(markerInfo.SoldPrice);
+								avg.SoldPrice_SQF.bed_3 += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+							} else if (m_beds >= 4) {
+								avg.NoProperties.bed_4 += 1;
+								avg.SQM.bed_4 += parseFloat(markerInfo.SQM);
+								avg.SoldPrice.bed_4 += parseFloat(markerInfo.SoldPrice);
+								avg.SoldPrice_SQF.bed_4 += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+							}
+							avg.NoProperties.all_beds += 1;
+							avg.SQM.all_beds += parseFloat(markerInfo.SQM);
+							avg.SoldPrice.all_beds += parseFloat(markerInfo.SoldPrice);
+							avg.SoldPrice_SQF.all_beds += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+							// Add markers
+							addMarkers(markerInfo);
+						}
+					}
+
+					console.log('AVG');
+					console.log(avg);
+
+					var formatter = new Intl.NumberFormat('en-GB', {
+						style: 'currency',
+						currency: 'GBP',
+						minimumFractionDigits: 0,
+						maximumFractionDigits: 0
+					});
+
+					$( "#averages" ).empty();
+					$( "#averages" ).append( "<hr><strong>All Properties</strong>:" );
+					$( "#averages" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.all_beds + "<br/>" );
+					$( "#averages" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.all_beds / avg.NoProperties.all_beds * 100) / 100 + "<br/>" );
+					$( "#averages" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.all_beds / avg.NoProperties.all_beds * 10.764 * 100) / 100 + "<br/>" );
+					$( "#averages" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.all_beds / avg.NoProperties.all_beds) + "<br/>" );
+					$( "#averages" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.all_beds / avg.NoProperties.all_beds)) + "<br/>" );
+
+					if (avg.NoProperties.bed_1 > 0) {
+						$( "#averages_1" ).empty();
+						$( "#averages_1" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_1 + "<br/>" );
+						$( "#averages_1" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_1 / avg.NoProperties.bed_1 * 100) / 100 + "<br/>" );
+						$( "#averages_1" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_1 / avg.NoProperties.bed_1 * 10.764 * 100) / 100 + "<br/>" );
+						$( "#averages_1" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_1 / avg.NoProperties.bed_1) + "<br/>" );
+						$( "#averages_1" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_1 / avg.NoProperties.bed_1)) + "<br/>" );
+					} else {
+						$( "#averages_1" ).empty();
+					}
+
+					if (avg.NoProperties.bed_2 > 0) {
+						$( "#averages_2" ).empty();
+						$( "#averages_2" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_2 + "<br/>" );
+						$( "#averages_2" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_2 / avg.NoProperties.bed_2 * 100) / 100 + "<br/>" );
+						$( "#averages_2" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_2 / avg.NoProperties.bed_2 * 10.764 * 100) / 100 + "<br/>" );
+						$( "#averages_2" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_2 / avg.NoProperties.bed_2) + "<br/>" );
+						$( "#averages_2" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_2 / avg.NoProperties.bed_2)) + "<br/>" );
+					} else {
+						$( "#averages_2" ).empty();
+					}
+
+					if (avg.NoProperties.bed_3 > 0) {
+						$( "#averages_3" ).empty();
+						$( "#averages_3" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_3 + "<br/>" );
+						$( "#averages_3" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_3 / avg.NoProperties.bed_3 * 100) / 100 + "<br/>" );
+						$( "#averages_3" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_3 / avg.NoProperties.bed_3 * 10.764 * 100) / 100 + "<br/>" );
+						$( "#averages_3" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_3 / avg.NoProperties.bed_3) + "<br/>" );
+						$( "#averages_3" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_3 / avg.NoProperties.bed_3)) + "<br/>" );
+					} else {
+						$( "#averages_3" ).empty();
+					}
+
+					if (avg.NoProperties.bed_4 > 0) {
+						$( "#averages_4" ).empty();
+						$( "#averages_4" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_4 + "<br/>" );
+						$( "#averages_4" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_4 / avg.NoProperties.bed_4 * 100) / 100 + "<br/>" );
+						$( "#averages_4" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_4 / avg.NoProperties.bed_4 * 10.764 * 100) / 100 + "<br/>" );
+						$( "#averages_4" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_4 / avg.NoProperties.bed_4) + "<br/>" );
+						$( "#averages_4" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_4 / avg.NoProperties.bed_4)) + "<br/>" );
+					} else {
+						$( "#averages_4" ).empty();
+					}
+
+				}
+			});
+
+			function addMarkers(markerInfo, queKey) {
+				var key = jQuery.rand(geoCodKeys);
+				var url = 'https://maps.googleapis.com/maps/api/geocode/json?key='+key+'&address='+markerInfo.Postcode+'&sensor=false';
+				var qyName = '';
+				if( queKey ) {
+					qyName = queKey;
+				} else {
+					qyName = 'MyQueue'+queuCounter;
+				}
+				$.ajaxq(qyName, {
+					url: url,
+					dataType: 'json'
+				}).done(function(data) {
+					var address = getParameterByName('address', this.url);
+					var index = errorArray.indexOf(address);
+					try {
+						var p = data.results[0].geometry.location;
+						var latlng = new google.maps.LatLng(p.lat, p.lng);
+						var marker = new google.maps.Marker({
+							position: latlng,
+							map: map,
+							icon: new google.maps.MarkerImage("http://s18748473.onlinehome-server.info/rightmove/icons/" + markerInfo.Color + "/Number_" + markerInfo.Ranking + ".png"),
+							title: markerInfo.Address
+						});
+						oms.addMarker(marker);
+
+						gMarkers.push(marker);
+						gMarkersInfo[marker.title] = markerInfo;
+						var formatter = new Intl.NumberFormat('en-GB', {
+							style: 'currency',
+							currency: 'GBP',
+							minimumFractionDigits: 0,
+						});
+						var content = document.createElement('div');
+						var text = "<h4>" + markerInfo.Address + "</h4><hr>";
+						text += "<strong>" + markerInfo.Postcode + "</strong><br>";
+						if (markerInfo.District) {
+							text += "<strong>District</strong>: " + markerInfo.District + "<br>";
+						}
+						if (markerInfo.Distance) {
+							text += "<strong>Distance To Post Code</strong>: " + markerInfo.Distance + ' ' + markerInfo.Measure + "<br>";
+						}
+						text += "<strong>Type</strong>: " + markerInfo.PropertyType + " / " + markerInfo.Tenure + "<br>";
+						if (markerInfo.DwellingType) {
+							text += "<strong>Dwelling Type</strong>: " + markerInfo.DwellingType + "<br>";
+						}
+						if (markerInfo.Beds) {
+							text += "<strong>Bedrooms</strong>: " + markerInfo.Beds + "<br>";
+						}
+						text += "<strong>SQM/SQF</strong>: " + markerInfo.SQM + " / " + markerInfo.SQF + "<br>";
+						if (markerInfo.SoldPrice) {
+							text += "<strong>Sold</strong>: " + formatter.format(markerInfo.SoldPrice) + "<br>";
+						}
+						if (markerInfo.SoldDate_SQF) {
+							text += "<strong>&pound; / SQF</strong>: " + formatter.format(markerInfo.SoldDate_SQF) + "<br>";
+						}
+						if (markerInfo.SoldDate) {
+							text += "<strong>Sold Date</strong>: " + markerInfo.SoldDate + "<br>";
+						}
+						if (markerInfo.Station) {
+							text += "<strong>Closest Station</strong>: " + markerInfo.Station + "<br>";
+						}
+						content.innerHTML = text;
+						// var infowindow = new google.maps.InfoWindow({
+						// 	content: content
+						// });
+						// google.maps.event.addListener(marker, 'click', function() {
+						// 	infowindow.open(map, marker);
+						// });
+						bounds.extend(latlng);
+						map.fitBounds(bounds);
+						totalAddedMarkers ++;
+						if (index > -1) {
+							errorArray.splice(index, 1);
+						}
+					} catch(e) {
+						if(data.status = 'ZERO_RESULTS')
+							return false;
+						//on error call add marker function for same address
+						//and keep in Error ajax queue
+						addMarkers( markerInfo, 'Errror' );
+						if (index == -1) {
+							errorArray.push( address );
+						}
+					}
+				});
+				//mentain ajax queue set
+				queuCounter++;
+				if( queuCounter == setLimit ){
+					queuCounter = 0;
+				}
+			}
+
+			//function get url parameter from url string
+			getParameterByName = function ( name,href ) {
+				name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+				var regexS = "[\\?&]"+name+"=([^&#]*)";
+				var regex = new RegExp( regexS );
+				var results = regex.exec( href );
+				if( results == null )
+					return "";
+				else
+					return decodeURIComponent(results[1].replace(/\+/g, " "));
+			}
+
+			$("#slider-range").slider({
+				range: true,
+				min: 1,
+				max: 1000,
+				values: [1, 1000],
+				slide: function(event, ui) {
+					$("#amount").val(ui.values[0] + " - " + ui.values[1]);
+				},
+				stop: function(event, ui) {
+					var rngMin = parseInt(ui.values[0]);
+					var rngMax = parseInt(ui.values[1]);
+					for (var i=0;i<gMarkers.length;i++) {
+						gMarkers[i].setMap(null);
+					}
+					$.ajax({
+						url: '/rightmove/getDB.php',
+						data: {user: $.urlParam('user')},
+						type: 'post',
+						success: function(output) {
+							var bounds = new google.maps.LatLngBounds();
+							var Beds_0 = [];
+							var Beds_1 = [];
+							var Beds_2 = [];
+							var Beds_3 = [];
+							var Beds_4 = [];
+							for (var i=0; i<output.length; i++) {
+								if (output[i].Beds) {
+									if (parseInt(output[i].Beds) == 1) {
+										if (Beds_1.indexOf(output[i].SoldPrice) == -1)
+											Beds_1.push(parseFloat(output[i].SoldPrice));
+									} else if (parseInt(output[i].Beds) == 2) {
+										if (Beds_2.indexOf(output[i].SoldPrice) == -1)
+											Beds_2.push(parseFloat(output[i].SoldPrice));
+									} else if (parseInt(output[i].Beds) == 3) {
+										if (Beds_3.indexOf(output[i].SoldPrice) == -1)
+											Beds_3.push(parseFloat(output[i].SoldPrice));
+									} else if (parseInt(output[i].Beds) >= 4) {
+										if (Beds_4.indexOf(output[i].SoldPrice) == -1)
+											Beds_4.push(parseFloat(output[i].SoldPrice));
+									}
+								} else {
+									Beds_0.push(parseFloat(output[i].SoldPrice));
+								}
+							}
+							Beds_1.sort();
+							Beds_1.reverse();
+							Beds_2.sort();
+							Beds_2.reverse();
+							Beds_3.sort();
+							Beds_3.reverse();
+							Beds_4.sort();
+							Beds_4.reverse();
+							$( "#legend" ).empty();
+							if (Beds_0.length > 0) {
+								$( "#legend" ).append( "<hr>" );
+								$( "#legend" ).append( "<img alt='' src='http://s18748473.onlinehome-server.info/rightmove/icons/grey/number_0.png'/> N/A Bed Flats<br />" );
+							}
+							if (Beds_1.length > 0) {
+								$( "#legend" ).append( "<hr>" );
+								$( "#legend" ).append( "<img id='bed_1' alt='' src='http://s18748473.onlinehome-server.info/rightmove/icons/Orange.png'/> 1 Bed Flats<br />" );
+								$( "#legend" ).append( "<div id='averages_1'></div>" );
+								$( "#bed_1" ).on('click', function() { toggleLegend(1) });
+							}
+							if (Beds_2.length > 0) {
+								$( "#legend" ).append( "<hr>" );
+								$( "#legend" ).append( "<img id='bed_2' alt='' src='http://s18748473.onlinehome-server.info/rightmove/icons/Blue.png'/> 2 Bed Flats<br />" );
+								$( "#legend" ).append( "<div id='averages_2'></div>" );
+								$( "#bed_2" ).on('click', function() { toggleLegend(2) });
+							}
+							if (Beds_3.length > 0) {
+								$( "#legend" ).append( "<hr>" );
+								$( "#legend" ).append( "<img id='bed_3' alt='' src='http://s18748473.onlinehome-server.info/rightmove/icons/Green.png'/> 3 Bed Flats<br />" );
+								$( "#legend" ).append( "<div id='averages_3'></div>" );
+								$( "#bed_3" ).on('click', function() { toggleLegend(3) });
+							}
+							if (Beds_4.length > 0) {
+								$( "#legend" ).append( "<hr>" );
+								$( "#legend" ).append( "<img id='bed_4' alt='' src='http://s18748473.onlinehome-server.info/rightmove/icons/Red.png'/> 4+ Bed Flats<br />" );
+								$( "#legend" ).append( "<div id='averages_4'></div>" );
+								$( "#bed_4" ).on('click', function() { toggleLegend(4) });
+							}
+							$( "#legend" ).append("<br>");
+							var avg = {
+								'NoProperties': {
+									'bed_1': 0,
+									'bed_2': 0,
+									'bed_3': 0,
+									'bed_4': 0,
+									'all_beds': 0
+								},
+								'SQM': {
+									'bed_1': 0,
+									'bed_2': 0,
+									'bed_3': 0,
+									'bed_4': 0,
+									'all_beds': 0
+								},
+								'SQF': {
+									'bed_1': 0,
+									'bed_2': 0,
+									'bed_3': 0,
+									'bed_4': 0,
+									'all_beds': 0
+								},
+								'SoldPrice': {
+									'bed_1': 0,
+									'bed_2': 0,
+									'bed_3': 0,
+									'bed_4': 0,
+									'all_beds': 0
+								},
+								'SoldPrice_SQF': {
+									'bed_1': 0,
+									'bed_2': 0,
+									'bed_3': 0,
+									'bed_4': 0,
+									'all_beds': 0
+								}
+							};
+							gMarkers = [];
+							gMarkersInfo = {};
+							var allMarkers = [];
+							for (var i=0; i<output.length; i++) {
+								if (output[i].Beds) {
+									var markerColor = 'grey';
+									var markerIndex;
+									if (parseInt(output[i].Beds) == 1) {
+										markerColor = 'orange';
+										markerIndex = Beds_1.indexOf(parseFloat(output[i].SoldPrice)) + 1;
+									} else if (parseInt(output[i].Beds) == 2) {
+										markerColor = 'blue';
+										markerIndex = Beds_2.indexOf(parseFloat(output[i].SoldPrice)) + 1;
+									} else if (parseInt(output[i].Beds) == 3) {
+										markerColor = 'green';
+										markerIndex = Beds_3.indexOf(parseFloat(output[i].SoldPrice)) + 1;
+									} else if (parseInt(output[i].Beds) >= 4) {
+										markerColor = 'red';
+										markerIndex = Beds_4.indexOf(parseFloat(output[i].SoldPrice)) + 1;
+									}
+									if (markerIndex > 100)
+										markerIndex = 100;
+									var markerInfo = {
+										'id': output[i]["id"],
+										'Address': output[i].Address,
+										'Postcode': output[i].Postcode,
+										'District': output[i].District,
+										'Distance': output[i].Distance,
+										'Duration': output[i].Duration,
+										'PropertyType': output[i].PropertyType,
+										'Tenure': output[i].Tenure,
+										'DwellingType': output[i].DwellingType,
+										'Beds': output[i].Beds,
+										'SQM': output[i].SQM,
+										'SQF': output[i].SQF,
+										'SoldPrice': output[i].SoldPrice,
+										'SoldPrice_SQF': output[i].SoldPrice_SQF,
+										'SoldDate': output[i].SoldDate,
+										'IndexSold': output[i].IndexSold,
+										'CurrentIndexDate': output[i].CurrentIndexDate,
+										'CurrentIndex': output[i].CurrentIndex,
+										'Indexed_PSQFT': output[i].Indexed_PSQFT,
+										'SoldPrice_SQF_Index': output[i].SoldPrice_SQF_Index,
+										'Index_Diff': output[i].Index_Diff,
+										'ClosestTube_Station': output[i].ClosestTube_Station,
+										'ClosestTube_Route': output[i].ClosestTube_Route,
+										'ClosestTube_Distance': output[i].ClosestTube_Distance,
+										'ClosestRail_Station': output[i].ClosestRail_Station,
+										'ClosestRail_Distance': output[i].ClosestRail_Distance,
+										'Color': markerColor,
+										'Measure': output[i].Measure,
+										'Ranking': markerIndex
+									};
+									if (parseInt(markerInfo.Ranking) >= rngMin && parseInt(markerInfo.Ranking) <= rngMax) {
+										if (!isNaN(markerInfo.SQM)) {
+											var m_beds = parseInt(markerInfo.Beds);
+											if (m_beds == 1) {
+												avg.NoProperties.bed_1 += 1;
+												avg.SQM.bed_1 += parseFloat(markerInfo.SQM);
+												avg.SoldPrice.bed_1 += parseFloat(markerInfo.SoldPrice);
+												avg.SoldPrice_SQF.bed_1 += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+											} else if (m_beds == 2) {
+												avg.NoProperties.bed_2 += 1;
+												avg.SQM.bed_2 += parseFloat(markerInfo.SQM);
+												avg.SoldPrice.bed_2 += parseFloat(markerInfo.SoldPrice);
+												avg.SoldPrice_SQF.bed_2 += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+											} else if (m_beds == 3) {
+												avg.NoProperties.bed_3 += 1;
+												avg.SQM.bed_3 += parseFloat(markerInfo.SQM);
+												avg.SoldPrice.bed_3 += parseFloat(markerInfo.SoldPrice);
+												avg.SoldPrice_SQF.bed_3 += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+											} else if (m_beds >= 4) {
+												avg.NoProperties.bed_4 += 1;
+												avg.SQM.bed_4 += parseFloat(markerInfo.SQM);
+												avg.SoldPrice.bed_4 += parseFloat(markerInfo.SoldPrice);
+												avg.SoldPrice_SQF.bed_4 += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+											}
+											avg.NoProperties.all_beds += 1;
+											avg.SQM.all_beds += parseFloat(markerInfo.SQM);
+											avg.SoldPrice.all_beds += parseFloat(markerInfo.SoldPrice);
+											avg.SoldPrice_SQF.all_beds += parseFloat(markerInfo.SoldPrice) / ( parseFloat(markerInfo.SQM) * 10.764 );
+										}
+
+										addMarkers(markerInfo);
+									}
+								}
+							}
+
+							var formatter = new Intl.NumberFormat('en-GB', {
+								style: 'currency',
+								currency: 'GBP',
+								minimumFractionDigits: 0,
+								maximumFractionDigits: 0
+							});
+
+							$( "#averages" ).empty();
+							$( "#averages" ).append( "<strong>All Properties</strong>:<hr/>" );
+							$( "#averages" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.all_beds + "<br/>" );
+							$( "#averages" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.all_beds / avg.NoProperties.all_beds * 100) / 100 + "<br/>" );
+							$( "#averages" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.all_beds / avg.NoProperties.all_beds * 10.764 * 100) / 100 + "<br/>" );
+							$( "#averages" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.all_beds / avg.NoProperties.all_beds) + "<br/>" );
+							$( "#averages" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.all_beds / avg.NoProperties.all_beds)) + "<br/>" );
+
+							if (avg.NoProperties.bed_1 > 0) {
+								$( "#averages_1" ).empty();
+								$( "#averages_1" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_1 + "<br/>" );
+								$( "#averages_1" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_1 / avg.NoProperties.bed_1 * 100) / 100 + "<br/>" );
+								$( "#averages_1" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_1 / avg.NoProperties.bed_1 * 10.764 * 100) / 100 + "<br/>" );
+								$( "#averages_1" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_1 / avg.NoProperties.bed_1) + "<br/>" );
+								$( "#averages_1" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_1 / avg.NoProperties.bed_1)) + "<br/>" );
+							} else {
+								$( "#averages_1" ).empty();
+							}
+
+							if (avg.NoProperties.bed_2 > 0) {
+								$( "#averages_2" ).empty();
+								$( "#averages_2" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_2 + "<br/>" );
+								$( "#averages_2" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_2 / avg.NoProperties.bed_2 * 100) / 100 + "<br/>" );
+								$( "#averages_2" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_2 / avg.NoProperties.bed_2 * 10.764 * 100) / 100 + "<br/>" );
+								$( "#averages_2" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_2 / avg.NoProperties.bed_2) + "<br/>" );
+								$( "#averages_2" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_2 / avg.NoProperties.bed_2)) + "<br/>" );
+							} else {
+								$( "#averages_2" ).empty();
+							}
+
+							if (avg.NoProperties.bed_3 > 0) {
+								$( "#averages_3" ).empty();
+								$( "#averages_3" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_3 + "<br/>" );
+								$( "#averages_3" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_3 / avg.NoProperties.bed_3 * 100) / 100 + "<br/>" );
+								$( "#averages_3" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_3 / avg.NoProperties.bed_3 * 10.764 * 100) / 100 + "<br/>" );
+								$( "#averages_3" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_3 / avg.NoProperties.bed_3) + "<br/>" );
+								$( "#averages_3" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_3 / avg.NoProperties.bed_3)) + "<br/>" );
+							} else {
+								$( "#averages_3" ).empty();
+							}
+
+							if (avg.NoProperties.bed_4 > 0) {
+								$( "#averages_4" ).empty();
+								$( "#averages_4" ).append( "<strong>No. Of Properties</strong>: " + avg.NoProperties.bed_4 + "<br/>" );
+								$( "#averages_4" ).append( "<strong>SQM</strong>: " + Math.round(avg.SQM.bed_4 / avg.NoProperties.bed_4 * 100) / 100 + "<br/>" );
+								$( "#averages_4" ).append( "<strong>SQF</strong>: " + Math.round(avg.SQM.bed_4 / avg.NoProperties.bed_4 * 10.764 * 100) / 100 + "<br/>" );
+								$( "#averages_4" ).append( "<strong>Sold Price</strong>: " + formatter.format(avg.SoldPrice.bed_4 / avg.NoProperties.bed_4) + "<br/>" );
+								$( "#averages_4" ).append( "<strong>&pound; / SQF</strong>: " + formatter.format(Math.round(avg.SoldPrice_SQF.bed_4 / avg.NoProperties.bed_4)) + "<br/>" );
+							} else {
+								$( "#averages_4" ).empty();
+							}
+
+						}
+					});
+				}
+			});
+
+			$("#amount").val($("#slider-range").slider("values", 0) + " - " + $("#slider-range").slider("values", 1));
+
+			$('#exportLink').on('click', function() {
+				$('#exportLink').hide();
+			});
+
+			$("#exportMarkers").on('click', function() {
+				$('#exportLink').hide();
+				var markerIDs = [];
+				if (polyMarkers.length>0) {
+					for (var i=0;i<gMarkers.length;i++) {
+						if (google.maps.geometry.poly.containsLocation(gMarkers[i].getPosition(),poly)) {
+							markerIDs.push(gMarkersInfo[gMarkers[i].title]);
+						}
+					}
+				} else {
+					for (var i=0;i<gMarkers.length;i++) {
+						markerIDs.push(gMarkersInfo[gMarkers[i].title]);
+					}
+				}
+				var jsonString = JSON.stringify(markerIDs);
+				$.ajax({
+					url: '/rightmove/getExcel.php',
+					data: {
+						'json': jsonString
+					},
+					type: 'post',
+					success: function(output) {
+						$('#exportLink').attr({target: '_blank', href  : 'http://s18748473.onlinehome-server.info/selected_area_output.xlsx'});
+						$('#exportLink').show();
+					},
+					error: function(err) {
+						console.log(err);
+					}
+				});
+			});
+
+		});
+
+	</script>
+</head>
+<body>
+	<table style="width: 100%; height: 98%;">
+		<tr>
+			<td style="width: 90%;">
+				<div id="map"></div>
+			</td>
+			<td valign="top">
+				<div id="legend"></div>
+				<div id="averages" style="padding: 5px;"></div>
+				<div id="slider" style="padding: 5px;">
+					<br>
+					<p>
+						<label for="amount">No Rank:</label>
+						<input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
+					</p>
+					<div id="slider-range"></div>
+				</div>
+				<div id="controls" style="padding: 5px;">
+					<br><br>
+					<button type="button" class="btn btn-danger btn-block" id='clearBtn'>Remove Area</button>
+					<button type="button" class="btn btn-success btn-block" id='hideMarkers'>Filter Markers</button>
+					<button type="button" class="btn btn-primary btn-block" onclick="location.reload();">Reset All</button>
+					<button type="button" class="btn btn-warning btn-block" id='exportMarkers'>Export Excel</button>
+					<a id='exportLink' href="#" style="display: none;">Click to download</button>
+				</div>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

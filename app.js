@@ -1,4 +1,4 @@
-angular.module('myCalendarApp', ['app.controllers', 'ui.calendar', 'ui.bootstrap', 'ngMaterial', 'ngRoute', 'smart-table', 'chart.js', 'ngFileUpload'])
+var app = angular.module('myCalendarApp', ['ui.calendar', 'ui.bootstrap', 'ngMaterial', 'ngRoute', 'smart-table', 'chart.js', 'ngFileUpload'])
 
 .factory('Excel',function($window){
     var uri = 'data:application/vnd.ms-excel;base64,',
@@ -23,25 +23,22 @@ angular.module('myCalendarApp', ['app.controllers', 'ui.calendar', 'ui.bootstrap
 }])
 
 .config(function ($routeProvider, $httpProvider) {
-
     $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8';
-
     $routeProvider
     .when('/', {
-        templateUrl: 'Calendar.html',
-        controller: 'myCalendarCtrl'
+        templateUrl: 'views/Calendar.html',
+        controller: 'CalendarCtrl'
     })
     .when('/database', {
-        templateUrl: 'Database.html',
-        controller: 'myCalendarCtrl'
+        templateUrl: 'views/Database.html',
+        controller: 'DatabaseCtrl'
     })
     .when('/database2', {
-        templateUrl: 'Database2.html',
-        controller: 'myCalendarCtrl'
+        templateUrl: 'views/Database2.html',
+        controller: 'Database2Ctrl'
     })
     .when('/charts', {
-        templateUrl: 'Charts.html',
-        controller: 'myCalendarCtrl'
+        templateUrl: 'views/Charts.html',
+        controller: 'ChartsCtrl'
     });
-
 });
